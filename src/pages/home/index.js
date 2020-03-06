@@ -9,4 +9,4 @@ function HomePage() {
   );
 }
 
-export default Home;
+export default HomePage;
