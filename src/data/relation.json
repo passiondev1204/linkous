@@ -1,0 +1,141 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "name": "HOST01",
+      "IP": "",
+      "credential": 1,
+      "vulnerability": 1,
+      "data": 1,
+      "level": 1
+    },
+    {
+      "id": 2,
+      "name": "HOST02",
+      "IP": "",
+      "credential": 1,
+      "vulnerability": 1,
+      "data": 3,
+      "level": 2
+    },
+    {
+      "id": 3,
+      "name": "HOST03",
+      "IP": "",
+      "credential": 1,
+      "vulnerability": 1,
+      "data": 6,
+      "level": 2
+    },
+    {
+      "id": 4,
+      "name": "HOST04",
+      "IP": "",
+      "credential": 1,
+      "vulnerability": 1,
+      "data": 7,
+      "level": 2
+    },
+    {
+      "id": 5,
+      "name": "HOST05",
+      "IP": "",
+      "credential": 1,
+      "vulnerability": 1,
+      "data": 10,
+      "level": 3
+    },
+    {
+      "id": 6,
+      "name": "HOST06",
+      "IP": "",
+      "credential": 1,
+      "vulnerability": 1,
+      "data": 11,
+      "level": 3
+    },
+    {
+      "id": 7,
+      "name": "HOST07",
+      "IP": "",
+      "credential": 1,
+      "vulnerability": 1,
+      "data": 20,
+      "level": 3
+    },
+    {
+      "id": 8,
+      "name": "HOST08",
+      "IP": "",
+      "credential": 1,
+      "vulnerability": 1,
+      "data": 38,
+      "level": 3
+    },
+    {
+      "id": 9,
+      "name": "HOST09",
+      "IP": "",
+      "credential": 1,
+      "vulnerability": 1,
+      "data": 17,
+      "level": 3
+    },
+    {
+      "id": 10,
+      "name": "HOST10",
+      "IP": "",
+      "credential": 1,
+      "vulnerability": 1,
+      "data": 27,
+      "level": 3
+    }
+  ],
+  "links": [
+    {
+      "id": 1,
+      "node1": 1,
+      "node2": 2
+    },
+    {
+      "id": 2,
+      "node1": 1,
+      "node2": 3
+    },
+    {
+      "id": 3,
+      "node1": 1,
+      "node2": 4
+    },
+    {
+      "id": 4,
+      "node1": 2,
+      "node2": 5
+    },
+    {
+      "id": 5,
+      "node1": 3,
+      "node2": 6
+    },
+    {
+      "id": 6,
+      "node1": 3,
+      "node2": 10
+    },
+    {
+      "id": 7,
+      "node1": 4,
+      "node2": 7
+    },
+    {
+      "id": 8,
+      "node1": 4,
+      "node2": 8
+    },
+    {
+      "id": 9,
+      "node1": 4,
+      "node2": 9
+    }
+  ]
+}
