@@ -28,6 +28,15 @@
       "level": 2
     },
     {
+      "id": 23,
+      "name": "HOST23",
+      "IP": "",
+      "credential": 1,
+      "vulnerability": 1,
+      "data": 6,
+      "level": 2
+    },
+    {
       "id": 4,
       "name": "HOST04",
       "IP": "",

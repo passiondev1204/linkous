@@ -51,14 +51,14 @@ export const Viewer = ({ data, width, height, config }) => {
         const angle =
           (i / data.nodes.filter(e => e.level === d.level).length) * Math.PI;
         return (
-          config.levelCircles["level" + d.level].distance * Math.cos(angle)
+          config.levelCircles["level" + d.level].distance * Math.cos(angle * 2)
         );
       })
       .attr("cy", function(d, i) {
         const angle =
           (i / data.nodes.filter(e => e.level === d.level).length) * Math.PI;
         return (
-          config.levelCircles["level" + d.level].distance * Math.sin(angle)
+          config.levelCircles["level" + d.level].distance * Math.sin(angle* 2)
         );
       });
 
