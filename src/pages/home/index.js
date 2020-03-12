@@ -16,15 +16,15 @@ function HomePage() {
     >
       <PackingViewer
         data={data}
-        width={1400}
+        width={1600}
         height={900}
         config={{
           duration: 1000,
           nodeSize: 18,
-          thickness: 4,
+          thickness: 3,
           linkColor: "rgba(255, 255, 255, 0.4)",
           backgroundColor: "#2f3d50",
-          rangerBorderColor: "rgb(245, 245, 245)",
+          rangerBorderColor: "rgb(245, 245, 245, 0.7)",
           rangerFillColor: "rgba(245, 245, 245, 0.05)",
           circleTextOffset: 24,
           levelCircles: {

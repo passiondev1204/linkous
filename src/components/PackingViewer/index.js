@@ -133,7 +133,6 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
       data.rangers.find(
         ({ id }) => id === selectedCircleRef.current.id
       ).impact = selectedImpactRef.current;
-      console.log(selectedCircleRef.current, selectedImpactRef.current, 'confirm')
       d3.select(`.rc-${selectedCircleRef.current.id}`)
         .style("stroke", global.color[selectedImpactRef.current].main)
         .style("fill", global.color[selectedImpactRef.current].light);
