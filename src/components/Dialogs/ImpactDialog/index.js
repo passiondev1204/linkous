@@ -42,7 +42,7 @@ export const ImpactDialog = ({ content, open, onSave, onCancel }) => {
             >
               <ListItemAvatar>
                 {/* <Avatar className={classes.avatar}> */}
-                  <FiberManualRecordIcon style={{color: global.color.impact[impact]}}/>
+                  <FiberManualRecordIcon style={{color: global.color[impact].main}}/>
                 {/* </Avatar> */}
               </ListItemAvatar>
               <ListItemText primary={impact} />

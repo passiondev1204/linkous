@@ -2,6 +2,7 @@ import React from "react";
 import * as d3 from "d3";
 import { makeStyles, Popover, MenuItem } from "@material-ui/core";
 import { AlertDialog, NameDialog, ImpactDialog } from "../Dialogs";
+import { SearchInputBox } from "../SearchInputBox";
 import { Wrapper } from "../Wrapper";
 import utils from "../../utils";
 import global from "../../global";
@@ -15,22 +16,20 @@ const useStyles = makeStyles(theme => ({
     padding: theme.spacing(1)
   },
   titleSection: {
-    fontWeight: "bold",
+    fontWeight: 500,
     marginRight: theme.spacing(1)
   },
-  descSection: {
-
-  }
+  descSection: {}
 }));
 
 // const zoom = d3.zoom();
 
-export const PackingViewer = ({ data, width, height, config }) => {
+export const PackingViewer = React.memo(({ data, width, height, config }) => {
   const classes = useStyles();
 
   const svgRef = React.useRef();
   const selectedCircleRef = React.useRef();
-  const circleRangersRef = React.useRef([]);
+  const circleRangersRef = React.useRef(data.rangers || []);
   const confirmTypeRef = React.useRef();
   const dlgContentRef = React.useRef(null);
   const tooltipContentRef = React.useRef(null);
@@ -43,6 +42,43 @@ export const PackingViewer = ({ data, width, height, config }) => {
   const [showAlertDialog, setShowAlertDialog] = React.useState(false);
   const [showNameDialog, setShowNameDialog] = React.useState(false);
   const [showImpactDialog, setShowImpactDialog] = React.useState(false);
+
+  const onSearch = searchText => {
+    d3.selectAll(".node").each(function(d) {
+      const finded = Object.values(d).find(
+        value =>
+          typeof value === "string" &&
+          searchText &&
+          value.toLowerCase().includes(searchText.toLowerCase())
+      );
+      if (finded) {
+        d3.select(this)
+          .style("stroke", "white")
+          .attr("stroke-width", config.thickness);
+      } else {
+        d3.select(this)
+          .style("stroke", config.levelCircles["level" + d.level].nodeStroke)
+          .attr("stroke-width", config.thickness * 0.5);
+      }
+    });
+
+    d3.selectAll(".range-circle").each(function(d) {
+      const finded = Object.values(d).find(
+        value =>
+          typeof value === "string" &&
+          searchText &&
+          value.toLowerCase().includes(searchText.toLowerCase())
+      );
+      if (finded) {
+        d3.select(this).style("stroke", "white");
+      } else {
+        d3.select(this).style(
+          "stroke",
+          d.impact ? global.color[d.impact].main : config.rangerBorderColor
+        );
+      }
+    });
+  };
 
   const onDeleteItem = () => {
     confirmTypeRef.current = "delete";
@@ -97,13 +133,13 @@ export const PackingViewer = ({ data, width, height, config }) => {
       circleRangersRef.current.find(
         ({ id }) => id === selectedCircleRef.current.id
       ).impact = selectedImpactRef.current;
-      d3.select(`.rc-${selectedCircleRef.current.id}`).attr(
-        "stroke",
-        global.color.impact[selectedImpactRef.current]
-      );
-      d3.select(`.rc-text-${selectedCircleRef.current.id}`).style(
+      d3.select(`.rc-${selectedCircleRef.current.id}`)
+        .style("stroke", global.color[selectedImpactRef.current].main)
+        .style("fill", global.color[selectedImpactRef.current].light);
+
+      d3.select(`.rc-text-${selectedCircleRef.current.id}`).attr(
         "fill",
-        global.color.impact[selectedImpactRef.current]
+        global.color[selectedImpactRef.current].main
       );
       setShowImpactDialog(false);
     }
@@ -138,7 +174,7 @@ export const PackingViewer = ({ data, width, height, config }) => {
     let line,
       circle,
       dragging = false,
-      movable = false,
+      moving = false,
       cr_index = 0,
       cx = width / 2,
       cy = height / 2;
@@ -155,16 +191,22 @@ export const PackingViewer = ({ data, width, height, config }) => {
     graph.selectAll("*").remove();
 
     const graphRanger = graph.append("g");
+    graphRanger
+      .append("rect")
+      .attr("width", width)
+      .attr("height", height)
+      .style("fill", config.backgroundColor);
+
     graphRanger.call(
       d3
         .drag()
         .on("start", function() {
-          if (movable) return;
+          if (moving) return;
           dragging = true;
           const m = d3.mouse(this);
           line = graphRanger
             .append("line")
-            .attr("stroke", "white")
+            .style("stroke", config.rangerBorderColor)
             .attr("x1", m[0])
             .attr("y1", m[1])
             .attr("x2", m[0])
@@ -178,23 +220,25 @@ export const PackingViewer = ({ data, width, height, config }) => {
             .attr("class", `range-circle rc-${cr_index}`)
             .attr("cx", d => (d.cx = m[0]))
             .attr("cy", d => (d.cy = m[1]))
-            .attr("fill", config.rangerFillColor)
-            .attr("stroke", config.rangerBorderColor)
-            .attr("stroke-width", 3)
+            .style("stroke", config.rangerBorderColor)
+            .attr("stroke-width", config.thickness)
+            .style("fill", config.rangerFillColor)
             .attr("r", d => (d.r = 0))
             .on("dblclick", function(d) {
-              movable = true;
+              moving = true;
               selectedCircleRef.current = d;
-              d3.select(this).attr("fill", config.rangerFillColor);
               d3.select(this).attr("cursor", "move");
             })
             .on("mouseover", function(d) {
-              if (dragging) return;
-              if (movable) return;
-              d3.select(this).attr("fill", "rgba(255, 255, 255, 0.2)");
+              d3.select(this).style("stroke", "white");
             })
             .on("mouseout", function(d) {
-              d3.select(this).attr("fill", config.rangerFillColor);
+              d3.select(this).style(
+                "stroke",
+                d.impact
+                  ? global.color[d.impact].main
+                  : config.rangerBorderColor
+              );
             })
             .on("contextmenu", function(d) {
               d3.event.preventDefault();
@@ -204,7 +248,7 @@ export const PackingViewer = ({ data, width, height, config }) => {
         })
         .on("drag", function() {
           const m = d3.mouse(this);
-          if (movable) {
+          if (moving) {
             d3.select(`.rc-${selectedCircleRef.current.id}`)
               .attr("cx", d => (d.cx = m[0]))
               .attr("cy", d => (d.cy = m[1]));
@@ -220,13 +264,14 @@ export const PackingViewer = ({ data, width, height, config }) => {
           }
         })
         .on("end", function() {
+          d3.selectAll(".node").style("pointer-events", "auto");
           dragging = false;
-          if (movable) {
+          if (moving) {
             d3.select(`.rc-${selectedCircleRef.current.id}`).attr(
               "cursor",
               "normal"
             );
-            movable = false;
+            moving = false;
           }
           line.remove();
           const cx = circle.attr("cx"),
@@ -235,12 +280,12 @@ export const PackingViewer = ({ data, width, height, config }) => {
           if (radius > config.nodeSize * 1.5) {
             graphRanger
               .append("text")
-              .attr("class", `rc-text-${cr_index}`)
+              .attr("class", `range-circle-text rc-text-${cr_index}`)
               .attr("x", cx)
               .attr("y", cy)
+              .attr("fill", config.rangerBorderColor)
               .attr("font-size", 18)
               .attr("font-weight", "bold")
-              .style("fill", config.rangerBorderColor)
               .style("pointer-events", "none")
               .attr("text-anchor", "middle")
               .attr("alignment-baseline", "center");
@@ -254,12 +299,62 @@ export const PackingViewer = ({ data, width, height, config }) => {
           graphRanger.on("mousemove", null);
         })
     );
-
-    graphRanger
-      .append("rect")
-      .attr("width", width)
-      .attr("height", height)
-      .attr("fill", 'transparent');
+    if (circleRangersRef.current.length > 0) {
+      //initial load
+      graphRanger
+        .selectAll(".range-circle")
+        .data(circleRangersRef.current)
+        .enter()
+        .append("circle")
+        .attr("class", d => `range-circle rc-${d.id}`)
+        .attr("cx", d => d.cx)
+        .attr("cy", d => d.cy)
+        .style("stroke", d =>
+          d.impact ? global.color[d.impact].main : config.rangerBorderColor
+        )
+        .attr("stroke-width", config.thickness)
+        .style("fill", d =>
+          d.impact ? global.color[d.impact].light : config.rangerFillColor
+        )
+        .attr("r", d => d.r)
+        .on("dblclick", function(d) {
+          moving = true;
+          selectedCircleRef.current = d;
+          d3.select(this).attr("cursor", "move");
+        })
+        .on("mouseover", function(d) {
+          d3.select(this).style("stroke", "white");
+        })
+        .on("mouseout", function(d) {
+          d3.select(this).style(
+            "stroke",
+            d.impact ? global.color[d.impact].main : config.rangerBorderColor
+          );
+        })
+        .on("contextmenu", function(d) {
+          d3.event.preventDefault();
+          selectedCircleRef.current = d;
+          setMenuAnchorEl(d3.event.currentTarget);
+        });
+      graphRanger
+        .selectAll(".range-circle-text")
+        .data(circleRangersRef.current)
+        .enter()
+        .append("text")
+        .attr("class", `range-circle-text rc-text-${cr_index}`)
+        .attr("x", d => d.cx)
+        .attr("y", d => d.cy)
+        .attr("fill", d =>
+          d.impact ? global.color[d.impact].main : config.rangerBorderColor
+        )
+        .attr("font-size", 18)
+        .attr("font-weight", "bold")
+        .style("pointer-events", "none")
+        .attr("text-anchor", "middle")
+        .attr("alignment-baseline", "center")
+        .text(d => d.name);
+      cr_index++;
+    }
 
     const chainGraph = graph
       .append("g")
@@ -274,25 +369,55 @@ export const PackingViewer = ({ data, width, height, config }) => {
       .enter()
       .append("circle")
       .attr("class", d => `node node-circle-${d.id}`)
-      .attr("fill", d => config.levelCircles["level" + d.level].nodeColor)
+      .style("fill", d => config.levelCircles["level" + d.level].nodeColor)
       .attr("stroke-width", config.thickness * 0.5)
-      .attr("stroke", d => config.levelCircles["level" + d.level].nodeStroke)
+      .style("stroke", d => config.levelCircles["level" + d.level].nodeStroke)
       .style("cursor", "pointer")
       .attr("cx", 0)
       .attr("cy", 0)
       .style("opacity", 0)
       .on("mouseover", function(d) {
-        if(dragging || movable) return;
+        if (dragging || moving) {
+          d3.select(this).style("pointer-events", "none");
+          return;
+        }
         tooltipContentRef.current = d;
         setTooltipAnchorEl(d3.event.currentTarget);
+        d3.select(this)
+          .style("stroke", "white")
+          .attr("stroke-width", config.thickness);
+        data.links
+          .filter(link => link.node1 === d.id || link.node2 === d.id)
+          .forEach(link => {
+            linksWrapper
+              .select(`.link-${link.node1}-${link.node2}`)
+              // .transition()
+              // .duration(config.duration / 2)
+              .style("stroke", "white")
+              .attr("stroke-width", config.thickness);
+          });
       })
-      .on("mouseout", () => {
-        if(dragging || movable) return;
+      .on("mouseout", function(d) {
+        if (dragging || moving) return;
         setTooltipAnchorEl(null);
+        d3.select(this)
+          .style("stroke", config.levelCircles["level" + d.level].nodeStroke)
+          .attr("stroke-width", 1);
+        data.links
+          .filter(link => link.node1 === d.id || link.node2 === d.id)
+          .forEach(link => {
+            linksWrapper
+              .select(`.link-${link.node1}-${link.node2}`)
+              .style("stroke", config.linkColor)
+              .attr("stroke-width", config.thickness * 0.5);
+          });
       })
       .call(
         d3
           .drag()
+          .on("start", function(d) {
+            setTooltipAnchorEl(null);
+          })
           .on("drag", function(d) {
             dragging = true;
             nodesWrapper
@@ -303,20 +428,21 @@ export const PackingViewer = ({ data, width, height, config }) => {
               .select(`.node-circle-text-${d.id}`)
               .attr("x", d.cx)
               .attr("y", d.cy - config.circleTextOffset);
-            const links = data.links.filter(
-              link => link.node1 === d.id || link.node2 === d.id
-            );
-            links.forEach(link => {
-              linksWrapper
-                .select(`.link-${link.node1}-${link.node2}`)
-                .attr(
-                  "d",
-                  `M${link.source.cx} ${link.source.cy}L${link.target.cx} ${link.target.cy}`
-                );
-            });
+
+            data.links
+              .filter(link => link.node1 === d.id || link.node2 === d.id)
+              .forEach(link => {
+                linksWrapper
+                  .select(`.link-${link.node1}-${link.node2}`)
+                  .attr(
+                    "d",
+                    `M${link.source.cx} ${link.source.cy}L${link.target.cx} ${link.target.cy}`
+                  );
+              });
           })
           .on("end", function(d) {
             dragging = false;
+            d3.select(this).style("pointer-events", "auto");
             d3.select(this).raise();
           })
       )
@@ -336,7 +462,7 @@ export const PackingViewer = ({ data, width, height, config }) => {
       .attr("text-anchor", "middle")
       .style("opacity", 0)
       .style("font-size", 12)
-      .attr("fill", "white")
+      .style("fill", "white")
       .style("pointer-events", "none")
       .raise()
       .transition()
@@ -360,7 +486,7 @@ export const PackingViewer = ({ data, width, height, config }) => {
         "d",
         d => `M${d.source.cx} ${d.source.cy}L${d.target.cx} ${d.target.cy}`
       )
-      .attr("stroke", config.linkColor)
+      .style("stroke", config.linkColor)
       .attr("stroke-width", config.thickness * 0.5);
 
     nodesWrapper.raise();
@@ -368,7 +494,8 @@ export const PackingViewer = ({ data, width, height, config }) => {
 
   return (
     <>
-      <svg ref={svgRef} width={width} height={height} style={{backgroundColor: config.backgroundColor}}>
+      <SearchInputBox onSearch={onSearch} />
+      <svg ref={svgRef} width={width} height={height}>
         <g className="graph" />
       </svg>
       <Popover
@@ -411,7 +538,11 @@ export const PackingViewer = ({ data, width, height, config }) => {
       >
         {tooltipContentRef.current && (
           <Wrapper height="auto">
-            <Wrapper height="auto" direction="column" className={classes.titleSection}>
+            <Wrapper
+              height="auto"
+              direction="column"
+              className={classes.titleSection}
+            >
               <span>Name</span>
               <span>IP</span>
               <span>Mask</span>
@@ -420,7 +551,11 @@ export const PackingViewer = ({ data, width, height, config }) => {
               <span>LPE</span>
               <span>Config</span>
             </Wrapper>
-            <Wrapper height="auto" direction="column" className={classes.descSection}>
+            <Wrapper
+              height="auto"
+              direction="column"
+              className={classes.descSection}
+            >
               <span>{tooltipContentRef.current.name}</span>
               <span>{tooltipContentRef.current.IP}</span>
               <span>{tooltipContentRef.current.Mask}</span>
@@ -469,4 +604,4 @@ export const PackingViewer = ({ data, width, height, config }) => {
       )}
     </>
   );
-};
+});
