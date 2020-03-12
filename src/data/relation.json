@@ -7,6 +7,33 @@
       "credential": 1,
       "vulnerability": 1,
       "data": 1,
+      "level": 0
+    },
+    {
+      "id": 11,
+      "name": "HOST11",
+      "IP": "",
+      "credential": 1,
+      "vulnerability": 1,
+      "data": 1,
+      "level": 1
+    },
+    {
+      "id": 15,
+      "name": "HOST15",
+      "IP": "",
+      "credential": 1,
+      "vulnerability": 1,
+      "data": 1,
+      "level": 1
+    },
+    {
+      "id": 155,
+      "name": "HOST155",
+      "IP": "",
+      "credential": 1,
+      "vulnerability": 1,
+      "data": 1,
       "level": 1
     },
     {
@@ -102,49 +129,60 @@
   ],
   "links": [
     {
-      "id": 1,
       "node1": 1,
-      "node2": 2
+      "node2": 11
     },
     {
-      "id": 2,
       "node1": 1,
+      "node2": 15
+    },
+    {
+      "node1": 1,
+      "node2": 155
+    },
+    {
+      "node1": 11,
       "node2": 3
     },
     {
-      "id": 3,
-      "node1": 1,
+      "node1": 2,
       "node2": 4
     },
     {
-      "id": 4,
-      "node1": 2,
+      "node1": 3,
       "node2": 5
     },
     {
-      "id": 5,
+      "node1": 15,
+      "node2": 23
+    },
+    {
+      "node1": 155,
+      "node2": 2
+    },
+    {
       "node1": 3,
       "node2": 6
     },
     {
-      "id": 6,
       "node1": 3,
       "node2": 10
     },
     {
-      "id": 7,
       "node1": 4,
       "node2": 7
     },
     {
-      "id": 8,
       "node1": 4,
       "node2": 8
     },
     {
-      "id": 9,
       "node1": 4,
       "node2": 9
+    },
+    {
+      "node1": 23,
+      "node2": 6
     }
   ]
 }
