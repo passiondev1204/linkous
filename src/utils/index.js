@@ -10,5 +10,6 @@ export default {
       rgb: `rgb(${r}, ${g}, ${b})`,
       rgba: `rgb(${r}, ${g}, ${b}, 0.1)`
     };
-  }
+  },
+  randomRange: (min, max) => Math.random() * (max - min) + min
 };

@@ -1,143 +1,206 @@
 {
-	"nodes": [{
-			"id": 1,
-			"name": "HOST01",
-			"IP": "192.168.1.1",
-			"Mask": "255.255.255.0",
-			"RS": "098",
-			"Software": [{
-				"AV": "Cylance",
-				"OS": "Windows 10",
-				"Browser": "Chrome",
-				"Vulnerabilities": [{
-						"CVE": "CVE-2020-0001"
-					},
-					{
-						"CVE": "CVE-2020-0002"
-					},
-					{
-						"CVE": "CVE-2020-0003"
-					},
-					{
-						"CVE": "CVE-2020-0004"
-					}
-				]
-			}],
-			"Conditions": [{
-				"RCE": "True",
-				"LPE": "True",
-				"Config": "True"
-			}],
-			"level": 0
-		},
-		{
-			"id": 2,
-			"name": "HOST02",
-			"IP": "192.168.1.2",
-			"Mask": "255.255.255.0",
-			"RS": "095",
-			"Software": [{
-				"AV": "Crowdstrike",
-				"OS": "Windows 2016 Server",
-				"Browser": "Chrome",
-				"Vulnerabilities": [{
-						"CVE": "CVE-2020-0001"
-					},
-					{
-						"CVE": "CVE-2020-0002"
-					},
-					{
-						"CVE": "CVE-2020-0005"
-					},
-					{
-						"CVE": "CVE-2020-0006"
-					}
-				]
-			}],
-			"Conditions": [{
-				"RCE": "True",
-				"LPE": "True",
-				"Config": "False"
-			}],
-			"level": 1
-		},
-		{
-			"id": 3,
-			"name": "HOST03",
-			"IP": "192.168.1.3",
-			"Mask": "255.255.255.0",
-			"RS": "075",
-			"Software": [{
-				"AV": "Cylance",
-				"OS": "Windows XP",
-				"Browser": "Chrome",
-				"Vulnerabilities": [{
-						"CVE": "CVE-2020-0011"
-					},
-					{
-						"CVE": "CVE-2020-0022"
-					},
-					{
-						"CVE": "CVE-2020-0003"
-					},
-					{
-						"CVE": "CVE-2020-0004"
-					}
-				]
-			}],
-			"Conditions": [{
-				"RCE": "True",
-				"LPE": "False",
-				"Config": "True"
-			}],
-			"level": 1
-		},
-		{
-			"id": 4,
-			"name": "HOST03",
-			"IP": "192.168.1.4",
-			"Mask": "255.255.255.0",
-			"RS": "090",
-			"Software": [{
-				"AV": "Cylance",
-				"OS": "Windows 10",
-				"Browser": "Firefox",
-				"Vulnerabilities": [{
-						"CVE": "CVE-2020-0001"
-					},
-					{
-						"CVE": "CVE-2020-0012"
-					},
-					{
-						"CVE": "CVE-2020-0003"
-					},
-					{
-						"CVE": "CVE-2020-00014"
-					}
-				]
-			}],
-			"Conditions": [{
-				"RCE": "True",
-				"LPE": "False",
-				"Config": "True"
-			}],
-			"level": 2
-		}
-	],
-	"links": [{
-			"id": 1,
-			"node1": 1,
-			"node2": 2
-		},
-		{
-			"id": 2,
-			"node1": 1,
-			"node2": 3
-		},
-		{
-			"id": 3,
-			"node1": 2,
-			"node2": 4
-		}
-	]
+  "nodes": [
+    {
+      "id": 1,
+      "name": "HOST01",
+      "IP": "192.168.1.1",
+      "Mask": "255.255.255.0",
+      "RS": "098",
+      "Software": [
+        {
+          "AV": "Cylance",
+          "OS": "Windows 10",
+          "Browser": "Chrome",
+          "Vulnerabilities": [
+            {
+              "CVE": "CVE-2020-0001"
+            },
+            {
+              "CVE": "CVE-2020-0002"
+            },
+            {
+              "CVE": "CVE-2020-0003"
+            },
+            {
+              "CVE": "CVE-2020-0004"
+            }
+          ]
+        }
+      ],
+      "Conditions": [
+        {
+          "RCE": "True",
+          "LPE": "True",
+          "Config": "True"
+        }
+      ],
+      "level": 0
+    },
+    {
+      "id": 2,
+      "name": "HOST02",
+      "IP": "192.168.1.2",
+      "Mask": "255.255.255.0",
+      "RS": "095",
+      "Software": [
+        {
+          "AV": "Crowdstrike",
+          "OS": "Windows 2016 Server",
+          "Browser": "Chrome",
+          "Vulnerabilities": [
+            {
+              "CVE": "CVE-2020-0001"
+            },
+            {
+              "CVE": "CVE-2020-0002"
+            },
+            {
+              "CVE": "CVE-2020-0005"
+            },
+            {
+              "CVE": "CVE-2020-0006"
+            }
+          ]
+        }
+      ],
+      "Conditions": [
+        {
+          "RCE": "True",
+          "LPE": "True",
+          "Config": "False"
+        }
+      ],
+      "level": 1
+    },
+    {
+      "id": 3,
+      "name": "HOST03",
+      "IP": "192.168.1.3",
+      "Mask": "255.255.255.0",
+      "RS": "075",
+      "Software": [
+        {
+          "AV": "Cylance",
+          "OS": "Windows XP",
+          "Browser": "Chrome",
+          "Vulnerabilities": [
+            {
+              "CVE": "CVE-2020-0011"
+            },
+            {
+              "CVE": "CVE-2020-0022"
+            },
+            {
+              "CVE": "CVE-2020-0003"
+            },
+            {
+              "CVE": "CVE-2020-0004"
+            }
+          ]
+        }
+      ],
+      "Conditions": [
+        {
+          "RCE": "True",
+          "LPE": "False",
+          "Config": "True"
+        }
+      ],
+      "level": 1
+    },
+    {
+      "id": 5,
+      "name": "HOST03",
+      "IP": "192.168.1.3",
+      "Mask": "255.255.255.0",
+      "RS": "075",
+      "Software": [
+        {
+          "AV": "Cylance",
+          "OS": "Windows XP",
+          "Browser": "Chrome",
+          "Vulnerabilities": [
+            {
+              "CVE": "CVE-2020-0011"
+            },
+            {
+              "CVE": "CVE-2020-0022"
+            },
+            {
+              "CVE": "CVE-2020-0003"
+            },
+            {
+              "CVE": "CVE-2020-0004"
+            }
+          ]
+        }
+      ],
+      "Conditions": [
+        {
+          "RCE": "True",
+          "LPE": "False",
+          "Config": "True"
+        }
+      ],
+      "level": 1
+    },
+    {
+      "id": 4,
+      "name": "HOST04",
+      "IP": "192.168.1.4",
+      "Mask": "255.255.255.0",
+      "RS": "090",
+      "Software": [
+        {
+          "AV": "Cylance",
+          "OS": "Windows 10",
+          "Browser": "Firefox",
+          "Vulnerabilities": [
+            {
+              "CVE": "CVE-2020-0001"
+            },
+            {
+              "CVE": "CVE-2020-0012"
+            },
+            {
+              "CVE": "CVE-2020-0003"
+            },
+            {
+              "CVE": "CVE-2020-00014"
+            }
+          ]
+        }
+      ],
+      "Conditions": [
+        {
+          "RCE": "True",
+          "LPE": "False",
+          "Config": "True"
+        }
+      ],
+      "level": 2
+    }
+  ],
+  "links": [
+    {
+      "id": 1,
+      "node1": 1,
+      "node2": 2
+    },
+    {
+      "id": 2,
+      "node1": 1,
+      "node2": 3
+    },
+    {
+      "id": 3,
+      "node1": 1,
+      "node2": 5
+    },
+    {
+      "id": 4,
+      "node1": 2,
+      "node2": 4
+    }
+  ]
 }
