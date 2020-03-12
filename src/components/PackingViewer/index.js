@@ -117,12 +117,12 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
       if (selectedCircleRef.current) {
         d3.select(`.rc-${selectedCircleRef.current.id}`).remove();
         d3.select(`.rc-text-${selectedCircleRef.current.id}`).remove();
-        circleRangersRef.current = circleRangersRef.current.filter(
+        data.rangers = data.rangers.filter(
           e => e.id !== selectedCircleRef.current.id
         );
       }
     } else if (confirmTypeRef.current === "name") {
-      circleRangersRef.current.find(
+      data.rangers.find(
         ({ id }) => id === selectedCircleRef.current.id
       ).name = selectedNameRef.current;
       d3.select(`.rc-text-${selectedCircleRef.current.id}`).text(
@@ -130,20 +130,21 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
       );
       setShowNameDialog(false);
     } else if (confirmTypeRef.current === "impact") {
-      circleRangersRef.current.find(
+      data.rangers.find(
         ({ id }) => id === selectedCircleRef.current.id
       ).impact = selectedImpactRef.current;
+      console.log(selectedCircleRef.current, selectedImpactRef.current, 'confirm')
       d3.select(`.rc-${selectedCircleRef.current.id}`)
         .style("stroke", global.color[selectedImpactRef.current].main)
         .style("fill", global.color[selectedImpactRef.current].light);
 
-      d3.select(`.rc-text-${selectedCircleRef.current.id}`).attr(
-        "fill",
-        global.color[selectedImpactRef.current].main
-      );
+      // d3.select(`.rc-text-${selectedCircleRef.current.id}`).attr(
+      //   "fill",
+      //   global.color[selectedImpactRef.current].main
+      // );
       setShowImpactDialog(false);
     }
-    console.log(circleRangersRef.current, "changed circleRangersRef.current");
+    console.log(data.rangers, "changed data.rangers");
     setShowAlertDialog(false);
     setMenuAnchorEl(null);
   };
@@ -205,62 +206,61 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
         .on("drag", rangeDragging)
         .on("end", rangeDragEnd)
     );
-    if (circleRangersRef.current.length > 0) {
+    
       //initial load
-      graphRanger
-        .selectAll(".range-circle")
-        .data(circleRangersRef.current)
-        .enter()
-        .append("circle")
-        .attr("class", d => `range-circle rc-${d.id}`)
-        .attr("cx", d => d.cx)
-        .attr("cy", d => d.cy)
-        .style("stroke", d =>
-          d.impact ? global.color[d.impact].main : config.rangerBorderColor
-        )
-        .attr("stroke-width", config.thickness)
-        .style("fill", d =>
-          d.impact ? global.color[d.impact].light : config.rangerFillColor
-        )
-        .attr("r", d => d.r)
-        .on("dblclick", function(d) {
-          moving = true;
-          selectedCircleRef.current = d;
-          d3.select(this).attr("cursor", "move");
-        })
-        .on("mouseover", function(d) {
-          d3.select(this).style("stroke", "white");
-        })
-        .on("mouseout", function(d) {
-          d3.select(this).style(
-            "stroke",
-            d.impact ? global.color[d.impact].main : config.rangerBorderColor
-          );
-        })
-        .on("contextmenu", function(d) {
-          d3.event.preventDefault();
-          selectedCircleRef.current = d;
-          setMenuAnchorEl(d3.event.currentTarget);
-        });
-      graphRanger
-        .selectAll(".range-circle-text")
-        .data(circleRangersRef.current)
-        .enter()
-        .append("text")
-        .attr("class", `range-circle-text rc-text-${cr_index}`)
-        .attr("x", d => d.cx)
-        .attr("y", d => d.cy)
-        .attr("fill", d =>
-          d.impact ? global.color[d.impact].main : config.rangerBorderColor
-        )
-        .attr("font-size", 18)
-        .attr("font-weight", "bold")
-        .style("pointer-events", "none")
-        .attr("text-anchor", "middle")
-        .attr("alignment-baseline", "center")
-        .text(d => d.name);
-      cr_index++;
-    }
+      // graphRanger
+      //   .selectAll(".range-circle")
+      //   .data(data.rangers)
+      //   .enter()
+      //   .append("circle")
+      //   .attr("class", d => `range-circle rc-${d.id}`)
+      //   .attr("cx", d => d.cx)
+      //   .attr("cy", d => d.cy)
+      //   .style("stroke", d =>
+      //     d.impact ? global.color[d.impact].main : config.rangerBorderColor
+      //   )
+      //   .attr("stroke-width", config.thickness)
+      //   .style("fill", d =>
+      //     d.impact ? global.color[d.impact].light : config.rangerFillColor
+      //   )
+      //   .attr("r", d => d.r)
+      //   .on("dblclick", function(d) {
+      //     moving = true;
+      //     selectedCircleRef.current = d;
+      //     d3.select(this).attr("cursor", "move");
+      //   })
+      //   .on("mouseover", function(d) {
+      //     d3.select(this).style("stroke", "white");
+      //   })
+      //   .on("mouseout", function(d) {
+      //     d3.select(this).style(
+      //       "stroke",
+      //       d.impact ? global.color[d.impact].main : config.rangerBorderColor
+      //     );
+      //   })
+      //   .on("contextmenu", function(d) {
+      //     d3.event.preventDefault();
+      //     selectedCircleRef.current = d;
+      //     setMenuAnchorEl(d3.event.currentTarget);
+      //   });
+      // graphRanger
+      //   .selectAll(".range-circle-text")
+      //   .data(data.rangers)
+      //   .enter()
+      //   .append("text")
+      //   .attr("class", `range-circle-text rc-text-${cr_index}`)
+      //   .attr("x", d => d.cx)
+      //   .attr("y", d => d.cy)
+      //   .attr("fill", d =>
+      //     d.impact ? global.color[d.impact].main : config.rangerBorderColor
+      //   )
+      //   .attr("font-size", 18)
+      //   .attr("font-weight", "bold")
+      //   .style("pointer-events", "none")
+      //   .attr("text-anchor", "middle")
+      //   .attr("alignment-baseline", "center")
+      //   .text(d => d.name);
+      
 
     function rangeDragStart(d) {
       if (moving) return;
@@ -273,10 +273,10 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
         .attr("y1", m[1])
         .attr("x2", m[0])
         .attr("y2", m[1]);
-      circleRangersRef.current.push({ id: cr_index });
+      data.rangers.push({ id: cr_index });
       circle = graphRanger
         .selectAll(".range-circle")
-        .data(circleRangersRef.current)
+        .data(data.rangers)
         .enter()
         .append("circle")
         .attr("class", `range-circle rc-${cr_index}`)
@@ -289,6 +289,7 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
         .on("dblclick", function(d) {
           moving = true;
           selectedCircleRef.current = d;
+          console.log(selectedCircleRef.current, 'selectedCircleRef.current')
           d3.select(this).attr("cursor", "move");
         })
         .on("mouseover", function(d) {
@@ -347,8 +348,9 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
           .attr("text-anchor", "middle")
           .attr("alignment-baseline", "center");
         cr_index++;
+        console.log(data.rangers, 'rangers')
       } else {
-        circleRangersRef.current = circleRangersRef.current.filter(
+        data.rangers = data.rangers.filter(
           cr => cr.id !== cr_index
         );
         circle.remove();
