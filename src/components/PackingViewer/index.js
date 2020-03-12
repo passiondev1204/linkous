@@ -23,6 +23,8 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
+// const zoom = d3.zoom();
+
 export const PackingViewer = ({ data, width, height, config }) => {
   const classes = useStyles();
 
@@ -110,6 +112,15 @@ export const PackingViewer = ({ data, width, height, config }) => {
     setMenuAnchorEl(null);
   };
 
+  // React.useEffect(() => {
+  //   d3.select(svgRef.current).call(zoom.transform, d3.zoomIdentity);
+  //   d3.select(svgRef.current).call(
+  //     zoom.on("zoom", function() {
+  //       d3.select(".graph").attr("transform", d3.event.transform);
+  //     })
+  //   );
+  // }, []);
+
   React.useEffect(() => {
     const getCenter = (node, index) => {
       const angle =
@@ -140,11 +151,9 @@ export const PackingViewer = ({ data, width, height, config }) => {
       }))
       .filter(link => link.source || link.target);
 
-    d3.select(svgRef.current)
-      .selectAll("*")
-      .remove();
+    const graph = d3.select(".graph");
+    graph.selectAll("*").remove();
 
-    const graph = d3.select(svgRef.current);
     const graphRanger = graph.append("g");
     graphRanger.call(
       d3
@@ -250,7 +259,7 @@ export const PackingViewer = ({ data, width, height, config }) => {
       .append("rect")
       .attr("width", width)
       .attr("height", height)
-      .attr("fill", config.backgroundColor);
+      .attr("fill", 'transparent');
 
     const chainGraph = graph
       .append("g")
@@ -359,7 +368,9 @@ export const PackingViewer = ({ data, width, height, config }) => {
 
   return (
     <>
-      <svg ref={svgRef} width={width} height={height} className="viewer" />
+      <svg ref={svgRef} width={width} height={height} style={{backgroundColor: config.backgroundColor}}>
+        <g className="graph" />
+      </svg>
       <Popover
         id="menu-popover"
         anchorOrigin={{
