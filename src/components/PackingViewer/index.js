@@ -176,12 +176,12 @@ export const PackingViewer = ({ data, width, height, config }) => {
             .on("dblclick", function(d) {
               movable = true;
               selectedCircleRef.current = d;
+              d3.select(this).attr("fill", config.rangerFillColor);
               d3.select(this).attr("cursor", "move");
             })
             .on("mouseover", function(d) {
               if (dragging) return;
               if (movable) return;
-
               d3.select(this).attr("fill", "rgba(255, 255, 255, 0.2)");
             })
             .on("mouseout", function(d) {
@@ -273,16 +273,19 @@ export const PackingViewer = ({ data, width, height, config }) => {
       .attr("cy", 0)
       .style("opacity", 0)
       .on("mouseover", function(d) {
+        if(dragging || movable) return;
         tooltipContentRef.current = d;
         setTooltipAnchorEl(d3.event.currentTarget);
       })
       .on("mouseout", () => {
+        if(dragging || movable) return;
         setTooltipAnchorEl(null);
       })
       .call(
         d3
           .drag()
           .on("drag", function(d) {
+            dragging = true;
             nodesWrapper
               .select(`.node-circle-${d.id}`)
               .attr("cx", d => (d.cx = d3.mouse(this)[0]))
@@ -304,6 +307,7 @@ export const PackingViewer = ({ data, width, height, config }) => {
             });
           })
           .on("end", function(d) {
+            dragging = false;
             d3.select(this).raise();
           })
       )
