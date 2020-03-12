@@ -2,6 +2,7 @@ import React from "react";
 import * as d3 from "d3";
 import { makeStyles, Popover, MenuItem } from "@material-ui/core";
 import { AlertDialog, NameDialog, ImpactDialog } from "../Dialogs";
+import { SearchInputBox } from "../SearchInputBox";
 import { Wrapper } from "../Wrapper";
 import utils from "../../utils";
 import global from "../../global";
@@ -15,22 +16,20 @@ const useStyles = makeStyles(theme => ({
     padding: theme.spacing(1)
   },
   titleSection: {
-    fontWeight: "bold",
+    fontWeight: 500,
     marginRight: theme.spacing(1)
   },
-  descSection: {
-
-  }
+  descSection: {}
 }));
 
 // const zoom = d3.zoom();
 
-export const PackingViewer = ({ data, width, height, config }) => {
+export const PackingViewer = React.memo(({ data, width, height, config }) => {
   const classes = useStyles();
 
   const svgRef = React.useRef();
   const selectedCircleRef = React.useRef();
-  const circleRangersRef = React.useRef([]);
+  const circleRangersRef = React.useRef(data.rangers || []);
   const confirmTypeRef = React.useRef();
   const dlgContentRef = React.useRef(null);
   const tooltipContentRef = React.useRef(null);
@@ -43,6 +42,43 @@ export const PackingViewer = ({ data, width, height, config }) => {
   const [showAlertDialog, setShowAlertDialog] = React.useState(false);
   const [showNameDialog, setShowNameDialog] = React.useState(false);
   const [showImpactDialog, setShowImpactDialog] = React.useState(false);
+
+  const onSearch = searchText => {
+    d3.selectAll(".node").each(function(d) {
+      const finded = Object.values(d).find(
+        value =>
+          typeof value === "string" &&
+          searchText &&
+          value.toLowerCase().includes(searchText.toLowerCase())
+      );
+      if (finded) {
+        d3.select(this)
+          .style("stroke", "white")
+          .attr("stroke-width", config.thickness);
+      } else {
+        d3.select(this)
+          .style("stroke", config.levelCircles["level" + d.level].nodeStroke)
+          .attr("stroke-width", config.thickness * 0.5);
+      }
+    });
+
+    d3.selectAll(".range-circle").each(function(d) {
+      const finded = Object.values(d).find(
+        value =>
+          typeof value === "string" &&
+          searchText &&
+          value.toLowerCase().includes(searchText.toLowerCase())
+      );
+      if (finded) {
+        d3.select(this).style("stroke", "white");
+      } else {
+        d3.select(this).style(
+          "stroke",
+          d.impact ? global.color[d.impact].main : config.rangerBorderColor
+        );
+      }
+    });
+  };
 
   const onDeleteItem = () => {
     confirmTypeRef.current = "delete";
@@ -97,13 +133,13 @@ export const PackingViewer = ({ data, width, height, config }) => {
       circleRangersRef.current.find(
         ({ id }) => id === selectedCircleRef.current.id
       ).impact = selectedImpactRef.current;
-      d3.select(`.rc-${selectedCircleRef.current.id}`).attr(
-        "stroke",
-        global.color.impact[selectedImpactRef.current]
-      );
-      d3.select(`.rc-text-${selectedCircleRef.current.id}`).style(
+      d3.select(`.rc-${selectedCircleRef.current.id}`)
+        .style("stroke", global.color[selectedImpactRef.current].main)
+        .style("fill", global.color[selectedImpactRef.current].light);
+
+      d3.select(`.rc-text-${selectedCircleRef.current.id}`).attr(
         "fill",
-        global.color.impact[selectedImpactRef.current]
+        global.color[selectedImpactRef.current].main
       );
       setShowImpactDialog(false);
     }
@@ -138,11 +174,12 @@ export const PackingViewer = ({ data, width, height, config }) => {
     let line,
       circle,
       dragging = false,
-      movable = false,
+      moving = false,
       cr_index = 0,
       cx = width / 2,
       cy = height / 2;
 
+    //initial data loading
     data.links = data.links
       .map(link => ({
         ...link,
@@ -155,220 +192,309 @@ export const PackingViewer = ({ data, width, height, config }) => {
     graph.selectAll("*").remove();
 
     const graphRanger = graph.append("g");
-    graphRanger.call(
-      d3
-        .drag()
-        .on("start", function() {
-          if (movable) return;
-          dragging = true;
-          const m = d3.mouse(this);
-          line = graphRanger
-            .append("line")
-            .attr("stroke", "white")
-            .attr("x1", m[0])
-            .attr("y1", m[1])
-            .attr("x2", m[0])
-            .attr("y2", m[1]);
-          circleRangersRef.current.push({ id: cr_index });
-          circle = graphRanger
-            .selectAll(".range-circle")
-            .data(circleRangersRef.current)
-            .enter()
-            .append("circle")
-            .attr("class", `range-circle rc-${cr_index}`)
-            .attr("cx", d => (d.cx = m[0]))
-            .attr("cy", d => (d.cy = m[1]))
-            .attr("fill", config.rangerFillColor)
-            .attr("stroke", config.rangerBorderColor)
-            .attr("stroke-width", 3)
-            .attr("r", d => (d.r = 0))
-            .on("dblclick", function(d) {
-              movable = true;
-              selectedCircleRef.current = d;
-              d3.select(this).attr("fill", config.rangerFillColor);
-              d3.select(this).attr("cursor", "move");
-            })
-            .on("mouseover", function(d) {
-              if (dragging) return;
-              if (movable) return;
-              d3.select(this).attr("fill", "rgba(255, 255, 255, 0.2)");
-            })
-            .on("mouseout", function(d) {
-              d3.select(this).attr("fill", config.rangerFillColor);
-            })
-            .on("contextmenu", function(d) {
-              d3.event.preventDefault();
-              selectedCircleRef.current = d;
-              setMenuAnchorEl(d3.event.currentTarget);
-            });
-        })
-        .on("drag", function() {
-          const m = d3.mouse(this);
-          if (movable) {
-            d3.select(`.rc-${selectedCircleRef.current.id}`)
-              .attr("cx", d => (d.cx = m[0]))
-              .attr("cy", d => (d.cy = m[1]));
-            d3.select(`.rc-text-${selectedCircleRef.current.id}`)
-              .attr("x", m[0])
-              .attr("y", m[1]);
-          } else {
-            line.attr("x2", m[0]).attr("y2", m[1]);
-            circle.attr(
-              "r",
-              d => (d.r = utils.distance(d.cx, d.cy, m[0], m[1]))
-            );
-          }
-        })
-        .on("end", function() {
-          dragging = false;
-          if (movable) {
-            d3.select(`.rc-${selectedCircleRef.current.id}`).attr(
-              "cursor",
-              "normal"
-            );
-            movable = false;
-          }
-          line.remove();
-          const cx = circle.attr("cx"),
-            cy = circle.attr("cy"),
-            radius = circle.attr("r");
-          if (radius > config.nodeSize * 1.5) {
-            graphRanger
-              .append("text")
-              .attr("class", `rc-text-${cr_index}`)
-              .attr("x", cx)
-              .attr("y", cy)
-              .attr("font-size", 18)
-              .attr("font-weight", "bold")
-              .style("fill", config.rangerBorderColor)
-              .style("pointer-events", "none")
-              .attr("text-anchor", "middle")
-              .attr("alignment-baseline", "center");
-            cr_index++;
-          } else {
-            circleRangersRef.current = circleRangersRef.current.filter(
-              cr => cr.id !== cr_index
-            );
-            circle.remove();
-          }
-          graphRanger.on("mousemove", null);
-        })
-    );
-
     graphRanger
       .append("rect")
       .attr("width", width)
       .attr("height", height)
-      .attr("fill", 'transparent');
+      .style("fill", config.backgroundColor);
 
-    const chainGraph = graph
-      .append("g")
-      .attr("transform", `translate(${cx}, ${cy})`);
+    graphRanger.call(
+      d3
+        .drag()
+        .on("start", rangeDragStart)
+        .on("drag", rangeDragging)
+        .on("end", rangeDragEnd)
+    );
+    if (circleRangersRef.current.length > 0) {
+      //initial load
+      graphRanger
+        .selectAll(".range-circle")
+        .data(circleRangersRef.current)
+        .enter()
+        .append("circle")
+        .attr("class", d => `range-circle rc-${d.id}`)
+        .attr("cx", d => d.cx)
+        .attr("cy", d => d.cy)
+        .style("stroke", d =>
+          d.impact ? global.color[d.impact].main : config.rangerBorderColor
+        )
+        .attr("stroke-width", config.thickness)
+        .style("fill", d =>
+          d.impact ? global.color[d.impact].light : config.rangerFillColor
+        )
+        .attr("r", d => d.r)
+        .on("dblclick", function(d) {
+          moving = true;
+          selectedCircleRef.current = d;
+          d3.select(this).attr("cursor", "move");
+        })
+        .on("mouseover", function(d) {
+          d3.select(this).style("stroke", "white");
+        })
+        .on("mouseout", function(d) {
+          d3.select(this).style(
+            "stroke",
+            d.impact ? global.color[d.impact].main : config.rangerBorderColor
+          );
+        })
+        .on("contextmenu", function(d) {
+          d3.event.preventDefault();
+          selectedCircleRef.current = d;
+          setMenuAnchorEl(d3.event.currentTarget);
+        });
+      graphRanger
+        .selectAll(".range-circle-text")
+        .data(circleRangersRef.current)
+        .enter()
+        .append("text")
+        .attr("class", `range-circle-text rc-text-${cr_index}`)
+        .attr("x", d => d.cx)
+        .attr("y", d => d.cy)
+        .attr("fill", d =>
+          d.impact ? global.color[d.impact].main : config.rangerBorderColor
+        )
+        .attr("font-size", 18)
+        .attr("font-weight", "bold")
+        .style("pointer-events", "none")
+        .attr("text-anchor", "middle")
+        .attr("alignment-baseline", "center")
+        .text(d => d.name);
+      cr_index++;
+    }
 
-    const nodesWrapper = chainGraph.append("g").attr("class", "nodes-wrapper");
-    const linksWrapper = chainGraph.append("g").attr("class", "links-wrapper");
+    function rangeDragStart(d) {
+      if (moving) return;
+      dragging = true;
+      const m = d3.mouse(this);
+      line = graphRanger
+        .append("line")
+        .style("stroke", config.rangerBorderColor)
+        .attr("x1", m[0])
+        .attr("y1", m[1])
+        .attr("x2", m[0])
+        .attr("y2", m[1]);
+      circleRangersRef.current.push({ id: cr_index });
+      circle = graphRanger
+        .selectAll(".range-circle")
+        .data(circleRangersRef.current)
+        .enter()
+        .append("circle")
+        .attr("class", `range-circle rc-${cr_index}`)
+        .attr("cx", d => (d.cx = m[0]))
+        .attr("cy", d => (d.cy = m[1]))
+        .style("stroke", config.rangerBorderColor)
+        .attr("stroke-width", config.thickness)
+        .style("fill", config.rangerFillColor)
+        .attr("r", d => (d.r = 0))
+        .on("dblclick", function(d) {
+          moving = true;
+          selectedCircleRef.current = d;
+          d3.select(this).attr("cursor", "move");
+        })
+        .on("mouseover", function(d) {
+          d3.select(this).style("stroke", "white");
+        })
+        .on("mouseout", function(d) {
+          d3.select(this).style(
+            "stroke",
+            d.impact ? global.color[d.impact].main : config.rangerBorderColor
+          );
+        })
+        .on("contextmenu", function(d) {
+          d3.event.preventDefault();
+          selectedCircleRef.current = d;
+          setMenuAnchorEl(d3.event.currentTarget);
+        });
+    }
+    function rangeDragging(d) {
+      const m = d3.mouse(this);
+      if (moving) {
+        d3.select(`.rc-${selectedCircleRef.current.id}`)
+          .attr("cx", d => (d.cx = m[0]))
+          .attr("cy", d => (d.cy = m[1]));
+        d3.select(`.rc-text-${selectedCircleRef.current.id}`)
+          .attr("x", m[0])
+          .attr("y", m[1]);
+      } else {
+        line.attr("x2", m[0]).attr("y2", m[1]);
+        circle.attr("r", d => (d.r = utils.distance(d.cx, d.cy, m[0], m[1])));
+      }
+    }
+    function rangeDragEnd(d) {
+      d3.selectAll(".node").style("pointer-events", "auto");
+      dragging = false;
+      if (moving) {
+        d3.select(`.rc-${selectedCircleRef.current.id}`).attr(
+          "cursor",
+          "normal"
+        );
+        moving = false;
+      }
+      line.remove();
+      const cx = circle.attr("cx"),
+        cy = circle.attr("cy"),
+        radius = circle.attr("r");
+      if (radius > config.nodeSize * 1.5) {
+        graphRanger
+          .append("text")
+          .attr("class", `range-circle-text rc-text-${cr_index}`)
+          .attr("x", cx)
+          .attr("y", cy)
+          .attr("fill", config.rangerBorderColor)
+          .attr("font-size", 18)
+          .attr("font-weight", "bold")
+          .style("pointer-events", "none")
+          .attr("text-anchor", "middle")
+          .attr("alignment-baseline", "center");
+        cr_index++;
+      } else {
+        circleRangersRef.current = circleRangersRef.current.filter(
+          cr => cr.id !== cr_index
+        );
+        circle.remove();
+      }
+      graphRanger.on("mousemove", null);
+    }
+    // const chainGraph = graph
+    //   .append("g")
+    //   .attr("transform", `translate(${cx}, ${cy})`);
 
-    nodesWrapper
-      .selectAll(".node")
-      .data(data.nodes)
-      .enter()
-      .append("circle")
-      .attr("class", d => `node node-circle-${d.id}`)
-      .attr("fill", d => config.levelCircles["level" + d.level].nodeColor)
-      .attr("stroke-width", config.thickness * 0.5)
-      .attr("stroke", d => config.levelCircles["level" + d.level].nodeStroke)
-      .style("cursor", "pointer")
-      .attr("cx", 0)
-      .attr("cy", 0)
-      .style("opacity", 0)
-      .on("mouseover", function(d) {
-        if(dragging || movable) return;
-        tooltipContentRef.current = d;
-        setTooltipAnchorEl(d3.event.currentTarget);
-      })
-      .on("mouseout", () => {
-        if(dragging || movable) return;
-        setTooltipAnchorEl(null);
-      })
-      .call(
-        d3
-          .drag()
-          .on("drag", function(d) {
-            dragging = true;
-            nodesWrapper
-              .select(`.node-circle-${d.id}`)
-              .attr("cx", d => (d.cx = d3.mouse(this)[0]))
-              .attr("cy", d => (d.cy = d3.mouse(this)[1]));
-            nodesWrapper
-              .select(`.node-circle-text-${d.id}`)
-              .attr("x", d.cx)
-              .attr("y", d.cy - config.circleTextOffset);
-            const links = data.links.filter(
-              link => link.node1 === d.id || link.node2 === d.id
-            );
-            links.forEach(link => {
-              linksWrapper
-                .select(`.link-${link.node1}-${link.node2}`)
-                .attr(
-                  "d",
-                  `M${link.source.cx} ${link.source.cy}L${link.target.cx} ${link.target.cy}`
-                );
-            });
-          })
-          .on("end", function(d) {
-            dragging = false;
-            d3.select(this).raise();
-          })
-      )
-      .transition()
-      .duration(config.duration)
-      .style("opacity", 1)
-      .attr("r", config.nodeSize)
-      .attr("cx", (d, i) => (d.cx = getCenter(d, i).cx))
-      .attr("cy", (d, i) => (d.cy = getCenter(d, i).cy));
+    // const nodesWrapper = chainGraph.append("g").attr("class", "nodes-wrapper");
+    // const linksWrapper = chainGraph.append("g").attr("class", "links-wrapper");
 
-    nodesWrapper
-      .selectAll(".node-text")
-      .data(data.nodes)
-      .enter()
-      .append("text")
-      .attr("class", d => `node-text node-circle-text-${d.id}`)
-      .attr("text-anchor", "middle")
-      .style("opacity", 0)
-      .style("font-size", 12)
-      .attr("fill", "white")
-      .style("pointer-events", "none")
-      .raise()
-      .transition()
-      .duration(config.duration)
-      .style("opacity", 1)
-      .attr("x", d => d.cx)
-      .attr("y", d => d.cy - config.circleTextOffset)
-      .text(d => d.name);
+    // nodesWrapper
+    //   .selectAll(".node")
+    //   .data(data.nodes)
+    //   .enter()
+    //   .append("circle")
+    //   .attr("class", d => `node node-circle-${d.id}`)
+    //   .style("fill", d => config.levelCircles["level" + d.level].nodeColor)
+    //   .attr("stroke-width", config.thickness * 0.5)
+    //   .style("stroke", d => config.levelCircles["level" + d.level].nodeStroke)
+    //   .style("cursor", "pointer")
+    //   .attr("cx", 0)
+    //   .attr("cy", 0)
+    //   .style("opacity", 0)
+    //   .on("mouseover", function(d) {
+    //     if (dragging || moving) {
+    //       d3.select(this).style("pointer-events", "none");
+    //       return;
+    //     }
+    //     tooltipContentRef.current = d;
+    //     setTooltipAnchorEl(d3.event.currentTarget);
+    //     d3.select(this)
+    //       .style("stroke", "white")
+    //       .attr("stroke-width", config.thickness);
+    //     data.links
+    //       .filter(link => link.node1 === d.id || link.node2 === d.id)
+    //       .forEach(link => {
+    //         linksWrapper
+    //           .select(`.link-${link.node1}-${link.node2}`)
+    //           // .transition()
+    //           // .duration(config.duration / 2)
+    //           .style("stroke", "white")
+    //           .attr("stroke-width", config.thickness);
+    //       });
+    //   })
+    //   .on("mouseout", function(d) {
+    //     if (dragging || moving) return;
+    //     setTooltipAnchorEl(null);
+    //     d3.select(this)
+    //       .style("stroke", config.levelCircles["level" + d.level].nodeStroke)
+    //       .attr("stroke-width", 1);
+    //     data.links
+    //       .filter(link => link.node1 === d.id || link.node2 === d.id)
+    //       .forEach(link => {
+    //         linksWrapper
+    //           .select(`.link-${link.node1}-${link.node2}`)
+    //           .style("stroke", config.linkColor)
+    //           .attr("stroke-width", config.thickness * 0.5);
+    //       });
+    //   })
+    //   .call(
+    //     d3
+    //       .drag()
+    //       .on("start", function(d) {
+    //         setTooltipAnchorEl(null);
+    //       })
+    //       .on("drag", function(d) {
+    //         dragging = true;
+    //         nodesWrapper
+    //           .select(`.node-circle-${d.id}`)
+    //           .attr("cx", d => (d.cx = d3.mouse(this)[0]))
+    //           .attr("cy", d => (d.cy = d3.mouse(this)[1]));
+    //         nodesWrapper
+    //           .select(`.node-circle-text-${d.id}`)
+    //           .attr("x", d.cx)
+    //           .attr("y", d.cy - config.circleTextOffset);
 
-    linksWrapper
-      .selectAll(".link-g")
-      .data(data.links)
-      .enter()
-      .append("path")
-      .attr("class", d => `link link-${d.source.id}-${d.target.id}`)
-      .attr("d", `M0 0L0 0`)
-      .transition()
-      .duration(config.duration)
-      .style("pointer-events", "none")
-      .attr(
-        "d",
-        d => `M${d.source.cx} ${d.source.cy}L${d.target.cx} ${d.target.cy}`
-      )
-      .attr("stroke", config.linkColor)
-      .attr("stroke-width", config.thickness * 0.5);
+    //         data.links
+    //           .filter(link => link.node1 === d.id || link.node2 === d.id)
+    //           .forEach(link => {
+    //             linksWrapper
+    //               .select(`.link-${link.node1}-${link.node2}`)
+    //               .attr(
+    //                 "d",
+    //                 `M${link.source.cx} ${link.source.cy}L${link.target.cx} ${link.target.cy}`
+    //               );
+    //           });
+    //       })
+    //       .on("end", function(d) {
+    //         dragging = false;
+    //         d3.select(this).style("pointer-events", "auto");
+    //         d3.select(this).raise();
+    //       })
+    //   )
+    //   .transition()
+    //   .duration(config.duration)
+    //   .style("opacity", 1)
+    //   .attr("r", config.nodeSize)
+    //   .attr("cx", (d, i) => (d.cx = getCenter(d, i).cx))
+    //   .attr("cy", (d, i) => (d.cy = getCenter(d, i).cy));
 
-    nodesWrapper.raise();
+    // nodesWrapper
+    //   .selectAll(".node-text")
+    //   .data(data.nodes)
+    //   .enter()
+    //   .append("text")
+    //   .attr("class", d => `node-text node-circle-text-${d.id}`)
+    //   .attr("text-anchor", "middle")
+    //   .style("opacity", 0)
+    //   .style("font-size", 12)
+    //   .style("fill", "white")
+    //   .style("pointer-events", "none")
+    //   .raise()
+    //   .transition()
+    //   .duration(config.duration)
+    //   .style("opacity", 1)
+    //   .attr("x", d => d.cx)
+    //   .attr("y", d => d.cy - config.circleTextOffset)
+    //   .text(d => d.name);
+
+    // linksWrapper
+    //   .selectAll(".link-g")
+    //   .data(data.links)
+    //   .enter()
+    //   .append("path")
+    //   .attr("class", d => `link link-${d.source.id}-${d.target.id}`)
+    //   .attr("d", `M0 0L0 0`)
+    //   .transition()
+    //   .duration(config.duration)
+    //   .style("pointer-events", "none")
+    //   .attr(
+    //     "d",
+    //     d => `M${d.source.cx} ${d.source.cy}L${d.target.cx} ${d.target.cy}`
+    //   )
+    //   .style("stroke", config.linkColor)
+    //   .attr("stroke-width", config.thickness * 0.5);
+
+    // nodesWrapper.raise();
   }, [data, config, width, height]);
 
   return (
     <>
-      <svg ref={svgRef} width={width} height={height} style={{backgroundColor: config.backgroundColor}}>
+      <SearchInputBox onSearch={onSearch} />
+      <svg ref={svgRef} width={width} height={height}>
         <g className="graph" />
       </svg>
       <Popover
@@ -411,7 +537,11 @@ export const PackingViewer = ({ data, width, height, config }) => {
       >
         {tooltipContentRef.current && (
           <Wrapper height="auto">
-            <Wrapper height="auto" direction="column" className={classes.titleSection}>
+            <Wrapper
+              height="auto"
+              direction="column"
+              className={classes.titleSection}
+            >
               <span>Name</span>
               <span>IP</span>
               <span>Mask</span>
@@ -420,7 +550,11 @@ export const PackingViewer = ({ data, width, height, config }) => {
               <span>LPE</span>
               <span>Config</span>
             </Wrapper>
-            <Wrapper height="auto" direction="column" className={classes.descSection}>
+            <Wrapper
+              height="auto"
+              direction="column"
+              className={classes.descSection}
+            >
               <span>{tooltipContentRef.current.name}</span>
               <span>{tooltipContentRef.current.IP}</span>
               <span>{tooltipContentRef.current.Mask}</span>
@@ -469,4 +603,4 @@ export const PackingViewer = ({ data, width, height, config }) => {
       )}
     </>
   );
-};
+});
