@@ -170,6 +170,10 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
           Math.sin(angle * 2)
       };
     };
+    const getGroupId = (node, groups) => {
+
+    };
+    
     let line,
       circle,
       dragging = false,

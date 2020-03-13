@@ -1,0 +1,1190 @@
+{
+	"nodes": [{
+			"id": 1,
+			"name": "ADC1",
+			"IP": "192.168.1.2",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 0,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 2016 Server",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "False",
+				"LPE": "False",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 2,
+			"name": "WS-ACCPAYABLE",
+			"IP": "192.168.1.3",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 2,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 2016 Server",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 3,
+			"name": "WS-ENGFS",
+			"IP": "192.168.1.4",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 1,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 2016 Server",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 4,
+			"name": "DEVRDP",
+			"IP": "192.168.1.5",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 1,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 2008 Server",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 5,
+			"name": "WS-HRSQL",
+			"IP": "192.168.1.6",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 1,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 2016 Server",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 6,
+			"name": "WS-APDB2",
+			"IP": "192.168.1.7",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 2,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 2016 Server",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 7,
+			"name": "WS-APDB",
+			"IP": "192.168.1.8",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 1,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 2016 Server",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 8,
+			"name": "WS-ACCTREC",
+			"IP": "192.168.1.9",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 2,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 2016 Server",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 9,
+			"name": "WW-JTAYLOR",
+			"IP": "10.0.100.1",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 2,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 10",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2018-0001"
+					},
+					{
+						"CVE": "CVE-2019-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 10,
+			"name": "WW-KFRANKEN",
+			"IP": "10.0.100.2",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 3,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 10",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 11,
+			"name": "WW-NTUFNEL",
+			"IP": "10.0.100.3",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 3,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows XP",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2018-0001"
+					},
+					{
+						"CVE": "CVE-2019-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 12,
+			"name": "WW-PJBOND",
+			"IP": "10.0.100.4",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 3,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 10",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 13,
+			"name": "WW-DLEE",
+			"IP": "10.0.100.5",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 3,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 10",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 14,
+			"name": "WW-SMERCHANT",
+			"IP": "10.0.100.6",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 3,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 7",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2018-0001"
+					},
+					{
+						"CVE": "CVE-2019-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 15,
+			"name": "WW-MSCOTT",
+			"IP": "10.0.100.7",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 3,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 10",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 16,
+			"name": "W7-JHALPERT",
+			"IP": "10.0.100.8",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 3,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 7",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2018-0001"
+					},
+					{
+						"CVE": "CVE-2019-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 17,
+			"name": "WW-BUECKER",
+			"IP": "10.0.100.9",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 3,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 10",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 18,
+			"name": "WW-VSCULLY",
+			"IP": "10.0.100.10",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 3,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 10",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 19,
+			"name": "W7-STOBOLOWSKI",
+			"IP": "10.0.100.11",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 3,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 7",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2018-0001"
+					},
+					{
+						"CVE": "CVE-2019-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 20,
+			"name": "WW-APOEHLER",
+			"IP": "10.0.100.12",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 3,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 10",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 21,
+			"name": "WW-TJONES",
+			"IP": "10.0.100.13",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 2,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 10",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 22,
+			"name": "JMARR",
+			"IP": "10.0.100.14",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 2,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows XP",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 23,
+			"name": "WW-JLEWIS",
+			"IP": "10.0.100.15",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 2,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 10",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2018-0001"
+					},
+					{
+						"CVE": "CVE-2019-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 24,
+			"name": "WW-FBAGGINS",
+			"IP": "10.0.100.16",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 2,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 10",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 25,
+			"name": "WW-JTKIRK",
+			"IP": "10.0.100.17",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 2,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 10",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 26,
+			"name": "WW-MPOLO",
+			"IP": "10.0.100.18",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 2,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 10",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2018-0001"
+					},
+					{
+						"CVE": "CVE-2019-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 27,
+			"name": "W7-GDANZIG",
+			"IP": "10.0.100.19",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 2,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 7",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 28,
+			"name": "WW-JBROLIN",
+			"IP": "10.0.100.20",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 2,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 10",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 29,
+			"name": "WW-DBOWIE",
+			"IP": "10.0.100.21",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 2,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 10",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2018-0001"
+					},
+					{
+						"CVE": "CVE-2019-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 30,
+			"name": "WW-FCOSTELLO",
+			"IP": "10.0.100.22",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 3,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 10",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 31,
+			"name": "WW-LDAVID",
+			"IP": "10.0.100.23",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 3,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 10",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		},
+		{
+			"id": 32,
+			"name": "WW-CKENT",
+			"IP": "10.0.100.24",
+			"Mask": "255.255.255.0",
+			"RS": "095",
+			"Level": 3,
+			"Software": [{
+				"AV": "Crowdstrike",
+				"OS": "Windows 10",
+				"Browser": "Chrome",
+				"Vulnerabilities": [{
+						"CVE": "CVE-2020-0001"
+					},
+					{
+						"CVE": "CVE-2020-0002"
+					},
+					{
+						"CVE": "CVE-2020-0005"
+					},
+					{
+						"CVE": "CVE-2020-0006"
+					}
+				]
+			}],
+			"Conditions": [{
+				"RCE": "True",
+				"LPE": "True",
+				"Config": "False"
+			}]
+		}
+	],
+	"links": [{
+			"id": 1,
+			"node1": 3,
+			"node2": 1
+		},
+		{
+			"id": 2,
+			"node1": 4,
+			"node2": 1
+		},
+		{
+			"id": 3,
+			"node1": 5,
+			"node2": 1
+		},
+		{
+			"id": 4,
+			"node1": 7,
+			"node2": 1
+		},
+		{
+			"id": 5,
+			"node1": 9,
+			"node2": 2
+		},
+		{
+			"id": 6,
+			"node1": 21,
+			"node2": 3
+		},
+		{
+			"id": 7,
+			"node1": 22,
+			"node2": 3
+		},
+		{
+			"id": 8,
+			"node1": 23,
+			"node2": 3
+		},
+		{
+			"id": 9,
+			"node1": 24,
+			"node2": 3
+		},
+		{
+			"id": 10,
+			"node1": 25,
+			"node2": 3
+		},
+		{
+			"id": 11,
+			"node1": 26,
+			"node2": 3
+		},
+		{
+			"id": 12,
+			"node1": 27,
+			"node2": 3
+		},
+		{
+			"id": 13,
+			"node1": 28,
+			"node2": 3
+		},
+		{
+			"id": 14,
+			"node1": 29,
+			"node2": 4
+		},
+		{
+			"id": 15,
+			"node1": 6,
+			"node2": 7
+		},
+		{
+			"id": 16,
+			"node1": 8,
+			"node2": 7
+		},
+		{
+			"id": 17,
+			"node1": 2,
+			"node2": 7
+		},
+		{
+			"id": 18,
+			"node1": 9,
+			"node2": 7
+		},
+		{
+			"id": 19,
+			"node1": 9,
+			"node2": 8
+		},
+		{
+			"id": 20,
+			"node1": 11,
+			"node2": 9
+		},
+		{
+			"id": 21,
+			"node1": 10,
+			"node2": 11
+		},
+		{
+			"id": 22,
+			"node1": 12,
+			"node2": 11
+		},
+		{
+			"id": 23,
+			"node1": 13,
+			"node2": 11
+		},
+		{
+			"id": 24,
+			"node1": 14,
+			"node2": 11
+		},
+		{
+			"id": 25,
+			"node1": 15,
+			"node2": 11
+		},
+		{
+			"id": 26,
+			"node1": 16,
+			"node2": 11
+		},
+		{
+			"id": 27,
+			"node1": 17,
+			"node2": 11
+		},
+		{
+			"id": 28,
+			"node1": 18,
+			"node2": 11
+		},
+		{
+			"id": 29,
+			"node1": 19,
+			"node2": 11
+		},
+		{
+			"id": 30,
+			"node1": 20,
+			"node2": 21
+		},
+		{
+			"id": 31,
+			"node1": 20,
+			"node2": 22
+		},
+		{
+			"id": 32,
+			"node1": 20,
+			"node2": 23
+		},
+		{
+			"id": 33,
+			"node1": 20,
+			"node2": 24
+		},
+		{
+			"id": 34,
+			"node1": 20,
+			"node2": 25
+		},
+		{
+			"id": 35,
+			"node1": 20,
+			"node2": 26
+		},
+		{
+			"id": 36,
+			"node1": 20,
+			"node2": 27
+		},
+		{
+			"id": 37,
+			"node1": 20,
+			"node2": 28
+		},
+		{
+			"id": 38,
+			"node1": 30,
+			"node2": 29
+		},
+		{
+			"id": 39,
+			"node1": 31,
+			"node2": 29
+		},
+		{
+			"id": 40,
+			"node1": 32,
+			"node2": 29
+		}
+	]
+}
