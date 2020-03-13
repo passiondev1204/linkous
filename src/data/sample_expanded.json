@@ -70,7 +70,9 @@
           "Config": "False"
         }
       ],
-      "level": 1
+      "level": 1,
+      "cx": -210,
+      "cy": 183
     },
     {
       "id": 3,
@@ -106,7 +108,9 @@
           "Config": "True"
         }
       ],
-      "level": 1
+      "level": 1,
+      "cx": -515,
+      "cy": -116
     },
     {
       "id": 5,
@@ -142,7 +146,9 @@
           "Config": "True"
         }
       ],
-      "level": 1
+      "level": 1,
+      "cx": 311,
+      "cy": -261
     },
     {
       "id": 4,
@@ -178,7 +184,9 @@
           "Config": "True"
         }
       ],
-      "level": 2
+      "level": 2,
+      "cx": 302,
+      "cy": 278
     }
   ],
   "links": [
