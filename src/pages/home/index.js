@@ -1,7 +1,7 @@
 import React from "react";
 import { Viewer } from "../../components/Viewer";
 import { PackingViewer } from "../../components/PackingViewer";
-import data from "../../data/nightingale.json";
+import data from "../../data/sample_expanded.json";
 
 function HomePage() {
   return (
@@ -24,19 +24,18 @@ function HomePage() {
           thickness: 3,
           linkColor: "rgba(255, 255, 255, 0.4)",
           backgroundColor: "#2f3d50",
-          rangerBorderColor: "rgb(245, 245, 245, 0.7)",
-          rangerFillColor: "rgba(245, 245, 245, 0.05)",
-          circleTextOffset: 24,
+          groupBorderColor: "rgb(245, 245, 245, 0.7)",
+          groupFillColor: "rgba(245, 245, 245, 0.05)",
           levelCircles: {
             level0: {
-              range: 0,
+              radius: 0,
               fill: "transparent",
               nodeColor: "yellow",
               stroke: "#bc464b",
               distance: 0
             },
             level1: {
-              range: 100,
+              radius: 100,
               fill: "rgba(223, 212, 208, 0.3)",
               nodeColor: "#aa302a",
               nodeStroke: "#bc403c",
@@ -44,7 +43,7 @@ function HomePage() {
               distance: 100
             },
             level2: {
-              range: 200,
+              radius: 200,
               fill: "rgba(230, 232, 228, 0.3)",
               nodeColor: "#b58e2e",
               nodeStroke: "#d1aa39",
@@ -52,7 +51,7 @@ function HomePage() {
               distance: 200
             },
             level3: {
-              range: 300,
+              radius: 300,
               fill: "rgba(231, 244, 251, 0.3)",
               nodeColor: "#233548",
               nodeStroke: "#37495c",
@@ -74,14 +73,14 @@ function HomePage() {
           backgroundColor: "#131f26",
           levelCircles: {
             level0: {
-              range: 0,
+              radius: 0,
               fill: "transparent",
               nodeColor: "none",
               stroke: "#bc464b",
               distance: 0
             },
             level1: {
-              range: 100,
+              radius: 100,
               fill: "rgba(223, 212, 208, 0.3)",
               nodeColor: "#aa302a",
               nodeStroke: "#bc403c",
@@ -89,7 +88,7 @@ function HomePage() {
               distance: 70
             },
             level2: {
-              range: 200,
+              radius: 200,
               fill: "rgba(230, 232, 228, 0.3)",
               nodeColor: "#b58e2e",
               nodeStroke: "#d1aa39",
@@ -97,7 +96,7 @@ function HomePage() {
               distance: 150
             },
             level3: {
-              range: 300,
+              radius: 300,
               fill: "rgba(231, 244, 251, 0.3)",
               nodeColor: "#233548",
               nodeStroke: "#37495c",

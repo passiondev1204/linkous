@@ -29,7 +29,7 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
   const classes = useStyles();
 
   const svgRef = React.useRef();
-  const selectedRangerRef = React.useRef();
+  const selectedGroupRef = React.useRef();
   const confirmTypeRef = React.useRef();
   const dlgContentRef = React.useRef(null);
   const tooltipContentRef = React.useRef(null);
@@ -62,7 +62,7 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
       }
     });
 
-    d3.selectAll(".range-circle").each(function(d) {
+    d3.selectAll(".group-circle").each(function(d) {
       const finded = Object.values(d).find(
         value =>
           typeof value === "string" &&
@@ -74,7 +74,7 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
       } else {
         d3.select(this).style(
           "stroke",
-          d.impact ? global.color[d.impact].main : config.rangerBorderColor
+          d.impact ? global.color[d.impact].main : config.groupBorderColor
         );
       }
     });
@@ -114,35 +114,35 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
 
   const onConfirm = () => {
     if (confirmTypeRef.current === "delete") {
-      if (selectedRangerRef.current) {
-        d3.select(`.rc-${selectedRangerRef.current.id}`).remove();
-        d3.select(`.rc-text-${selectedRangerRef.current.id}`).remove();
-        data.rangers = data.rangers.filter(
-          e => e.id !== selectedRangerRef.current.id
+      if (selectedGroupRef.current) {
+        d3.select(`.gc-${selectedGroupRef.current.id}`).remove();
+        d3.select(`.gc-text-${selectedGroupRef.current.id}`).remove();
+        data.groups = data.groups.filter(
+          e => e.id !== selectedGroupRef.current.id
         );
       }
     } else if (confirmTypeRef.current === "name") {
-      data.rangers.find(({ id }) => id === selectedRangerRef.current.id).name =
+      data.groups.find(({ id }) => id === selectedGroupRef.current.id).name =
         selectedNameRef.current;
-      d3.select(`.rc-text-${selectedRangerRef.current.id}`).text(
+      d3.select(`.gc-text-${selectedGroupRef.current.id}`).text(
         selectedNameRef.current
       );
       setShowNameDialog(false);
     } else if (confirmTypeRef.current === "impact") {
-      data.rangers.find(
-        ({ id }) => id === selectedRangerRef.current.id
+      data.groups.find(
+        ({ id }) => id === selectedGroupRef.current.id
       ).impact = selectedImpactRef.current;
-      d3.select(`.rc-${selectedRangerRef.current.id}`)
+      d3.select(`.gc-${selectedGroupRef.current.id}`)
         .style("stroke", global.color[selectedImpactRef.current].main)
         .style("fill", global.color[selectedImpactRef.current].light);
 
-      d3.select(`.rc-text-${selectedRangerRef.current.id}`).attr(
+      d3.select(`.gc-text-${selectedGroupRef.current.id}`).attr(
         "fill",
         global.color[selectedImpactRef.current].main
       );
       setShowImpactDialog(false);
     }
-    console.log(data.rangers, "changed data.rangers");
+    console.log(data.groups, "changed data.groups");
     setShowAlertDialog(false);
     setMenuAnchorEl(null);
   };
@@ -173,9 +173,8 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
     let line,
       circle,
       dragging = false,
-      resizing = false,
       moving = false,
-      ranger_id = 0,
+      group_id = 0,
       cx = width / 2,
       cy = height / 2;
 
@@ -191,52 +190,52 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
     const graph = d3.select(".graph");
     graph.selectAll("*").remove();
 
-    const graphRanger = graph.append("g");
-    graphRanger
+    const gGroups = graph.append("g");
+    gGroups
       .append("rect")
       .attr("width", width)
       .attr("height", height)
       .style("fill", config.backgroundColor);
 
-    graphRanger.call(
+    gGroups.call(
       d3
         .drag()
-        .on("start", rangeDragStart)
-        .on("drag", rangeDragging)
-        .on("end", rangeDragEnd)
+        .on("start", groupDragStart)
+        .on("drag", groupDragging)
+        .on("end", groupDragEnd)
     );
 
-    //initial ranger load
-    graphRanger
-      .selectAll(".range-circle")
-      .data(data.rangers)
+    //initial group load
+    gGroups
+      .selectAll(".group-circle")
+      .data(data.groups)
       .enter()
       .append("circle")
-      .attr("class", d => `range-circle rc-${d.id}`)
+      .attr("class", d => `group-circle gc-${d.id}`)
       .attr("cx", d => d.cx)
       .attr("cy", d => d.cy)
       .style("stroke", d =>
-        d.impact ? global.color[d.impact].main : config.rangerBorderColor
+        d.impact ? global.color[d.impact].main : config.groupBorderColor
       )
       .attr("stroke-width", config.thickness)
       .style("fill", d =>
-        d.impact ? global.color[d.impact].light : config.rangerFillColor
+        d.impact ? global.color[d.impact].light : config.groupFillColor
       )
       .attr("r", d => d.r)
-      .on("dblclick", rangeDblClick)
-      .on("mouseover", rangeMouseOver)
-      .on("mouseout", rangeMouseOut)
-      .on("contextmenu", rangeContextMenu);
-    graphRanger
-      .selectAll(".range-circle-text")
-      .data(data.rangers)
+      .on("dblclick", groupDblClick)
+      .on("mouseover", groupMouseOver)
+      .on("mouseout", groupMouseOut)
+      .on("contextmenu", groupContextMenu);
+    gGroups
+      .selectAll(".group-circle-text")
+      .data(data.groups)
       .enter()
       .append("text")
-      .attr("class", d => `range-circle-text rc-text-${d.id}`)
+      .attr("class", d => `group-circle-text gc-text-${d.id}`)
       .attr("x", d => d.cx)
       .attr("y", d => d.cy)
       .attr("fill", d =>
-        d.impact ? global.color[d.impact].main : config.rangerBorderColor
+        d.impact ? global.color[d.impact].main : config.groupBorderColor
       )
       .attr("font-size", 18)
       .attr("font-weight", "bold")
@@ -245,12 +244,12 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
       .attr("alignment-baseline", "center")
       .text(d => d.name || "");
 
-    const chainGraph = graph
+    const gChain = graph
       .append("g")
       .attr("transform", `translate(${cx}, ${cy})`);
 
-    const nodesWrapper = chainGraph.append("g").attr("class", "nodes-wrapper");
-    const linksWrapper = chainGraph.append("g").attr("class", "links-wrapper");
+    const nodesWrapper = gChain.append("g").attr("class", "nodes-wrapper");
+    const linksWrapper = gChain.append("g").attr("class", "links-wrapper");
 
     nodesWrapper
       .selectAll(".node")
@@ -315,7 +314,7 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
       .duration(config.duration)
       .style("opacity", 1)
       .attr("x", d => d.cx)
-      .attr("y", d => d.cy - config.circleTextOffset)
+      .attr("y", d => d.cy - config.nodeSize * 1.5)
       .text(d => d.name);
 
     linksWrapper
@@ -337,44 +336,44 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
 
     nodesWrapper.raise();
 
-    //ranger mouse events
-    function rangeDragStart(d) {
+    //group mouse events
+    function groupDragStart(d) {
       if (moving) return;
       dragging = true;
       const m = d3.mouse(this);
-      line = graphRanger
+      line = gGroups
         .append("line")
-        .style("stroke", config.rangerBorderColor)
+        .style("stroke", config.groupBorderColor)
         .attr("x1", m[0])
         .attr("y1", m[1])
         .attr("x2", m[0])
         .attr("y2", m[1]);
-      ranger_id = nextId("ranger-");
-      data.rangers.push({ id: ranger_id });
-      circle = graphRanger
-        .selectAll(".range-circle")
-        .data(data.rangers)
+      group_id = nextId("group-");
+      data.groups.push({ id: group_id });
+      circle = gGroups
+        .selectAll(".group-circle")
+        .data(data.groups)
         .enter()
         .append("circle")
-        .attr("class", `range-circle rc-${ranger_id}`)
+        .attr("class", `group-circle gc-${group_id}`)
         .attr("cx", d => (d.cx = m[0]))
         .attr("cy", d => (d.cy = m[1]))
-        .style("stroke", config.rangerBorderColor)
+        .style("stroke", config.groupBorderColor)
         .attr("stroke-width", config.thickness)
-        .style("fill", config.rangerFillColor)
+        .style("fill", config.groupFillColor)
         .attr("r", d => (d.r = 0))
-        .on("dblclick", rangeDblClick)
-        .on("mouseover", rangeMouseOver)
-        .on("mouseout", rangeMouseOut)
-        .on("contextmenu", rangeContextMenu);
+        .on("dblclick", groupDblClick)
+        .on("mouseover", groupMouseOver)
+        .on("mouseout", groupMouseOut)
+        .on("contextmenu", groupContextMenu);
     }
-    function rangeDragging(d) {
+    function groupDragging(d) {
       const m = d3.mouse(this);
       if (moving) {
-        d3.select(`.rc-${selectedRangerRef.current.id}`)
+        d3.select(`.gc-${selectedGroupRef.current.id}`)
           .attr("cx", d => (d.cx = m[0]))
           .attr("cy", d => (d.cy = m[1]));
-        d3.select(`.rc-text-${selectedRangerRef.current.id}`)
+        d3.select(`.gc-text-${selectedGroupRef.current.id}`)
           .attr("x", m[0])
           .attr("y", m[1]);
       } else {
@@ -382,11 +381,11 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
         circle.attr("r", d => (d.r = utils.distance(d.cx, d.cy, m[0], m[1])));
       }
     }
-    function rangeDragEnd(d) {
+    function groupDragEnd(d) {
       d3.selectAll(".node").style("pointer-events", "auto");
       dragging = false;
       if (moving) {
-        d3.select(`.rc-${selectedRangerRef.current.id}`).attr(
+        d3.select(`.gc-${selectedGroupRef.current.id}`).attr(
           "cursor",
           "normal"
         );
@@ -397,69 +396,41 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
         cy = circle.attr("cy"),
         radius = circle.attr("r");
       if (radius > config.nodeSize * 1.5) {
-        graphRanger
+        gGroups
           .append("text")
-          .attr("class", `range-circle-text rc-text-${ranger_id}`)
+          .attr("class", `group-circle-text gc-text-${group_id}`)
           .attr("x", cx)
           .attr("y", cy)
-          .attr("fill", config.rangerBorderColor)
+          .attr("fill", config.groupBorderColor)
           .attr("font-size", 18)
           .attr("font-weight", "bold")
           .style("pointer-events", "none")
           .attr("text-anchor", "middle")
           .attr("alignment-baseline", "center");
       } else {
-        data.rangers = data.rangers.filter(cr => cr.id !== ranger_id);
+        data.groups = data.groups.filter(cr => cr.id !== group_id);
         circle.remove();
       }
-      graphRanger.on("mousemove", null);
+      gGroups.on("mousemove", null);
     }
-    function rangeDblClick(d) {
+    function groupDblClick(d) {
       moving = true;
       // resizing = true;
-      selectedRangerRef.current = d;
+      selectedGroupRef.current = d;
       d3.select(this).attr("cursor", "move");
-
-      graphRanger
-        .append("rect")
-        .attr("class", "dash-rect")
-        .attr("x", d.cx - d.r - 3)
-        .attr("y", d.cy - d.r - 3)
-        .attr("width", d.r * 2 + 6)
-        .attr("height", d.r * 2 + 6)
-        .style("stroke", "grey")
-        .style("fill", "transparent")
-        .style("stroke-dasharray", "3, 3");
-      graphRanger
-        .append("rect")
-        .attr("class", "resize-handle-rect")
-        .attr("x", d.cx + d.r - 7.5)
-        .attr("y", d.cy + d.r - 7.5)
-        .attr("width", 15)
-        .attr("height", 15)
-        .style("stroke", "transparent")
-        .style("stroke-width", 15)
-        .style("fill", "red")
-        .style("cursor", "nw-resize")
-        .call(
-          d3.drag()
-            .on("start", resizeHandlerDragStart)
-            .on("drag", resizeHandlerDragging)
-            .on("end", resizeHandlerDragEnd)
-        );
     }
-    function rangeMouseOver(d) {
+    function groupMouseOver(d) {
       d3.select(this).style("stroke", "white");
     }
-    function rangeMouseOut(d) {
+    function groupMouseOut(d) {
       d3.select(this).style(
         "stroke",
-        d.impact ? global.color[d.impact].main : config.rangerBorderColor
+        d.impact ? global.color[d.impact].main : config.groupBorderColor
       );
     }
-    function rangeContextMenu(d) {
+    function groupContextMenu(d) {
       d3.event.preventDefault();
-      selectedRangerRef.current = d;
+      selectedGroupRef.current = d;
       setMenuAnchorEl(d3.event.currentTarget);
     }
     //node mouse events
@@ -475,7 +446,7 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
       nodesWrapper
         .select(`.node-circle-text-${d.id}`)
         .attr("x", d.cx)
-        .attr("y", d.cy - config.circleTextOffset);
+        .attr("y", d.cy - config.nodeSize * 1.5);
 
       data.links
         .filter(link => link.node1 === d.id || link.node2 === d.id)
@@ -528,22 +499,6 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
             .style("stroke", config.linkColor)
             .attr("stroke-width", config.thickness * 0.5);
         });
-    }
-    // resizing mouse events
-    function resizeHandlerDragStart() {
-      moving = false;
-      resizing = true;      
-    }
-    function resizeHandlerDragging() {
-      const m = d3.mouse(this);
-      console.log(m, 'm!!')
-      moving = false;
-      resizing = true;
-      d3.select('.resize-handle-rect')
-        .attr()
-    }
-    function resizeHandlerDragEnd() {
-      resizing = false;
     }
   }, [data, config, width, height]);
 
@@ -637,7 +592,7 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
       )}
       {showNameDialog && (
         <NameDialog
-          content={selectedRangerRef.current.name || ""}
+          content={selectedGroupRef.current.name || ""}
           open={showNameDialog}
           onSave={onSaveName}
           onCancel={() => {
@@ -648,7 +603,7 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
       )}
       {showImpactDialog && (
         <ImpactDialog
-          content={selectedRangerRef.current.impact || ""}
+          content={selectedGroupRef.current.impact || ""}
           open={showImpactDialog}
           onSave={onSaveImpact}
           onCancel={() => {
