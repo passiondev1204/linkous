@@ -29,7 +29,7 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
   const classes = useStyles();
 
   const svgRef = React.useRef();
-  const selectedRangerRef = React.useRef();  
+  const selectedRangerRef = React.useRef();
   const confirmTypeRef = React.useRef();
   const dlgContentRef = React.useRef(null);
   const tooltipContentRef = React.useRef(null);
@@ -173,6 +173,7 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
     let line,
       circle,
       dragging = false,
+      resizing = false,
       moving = false,
       ranger_id = 0,
       cx = width / 2,
@@ -242,7 +243,7 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
       .style("pointer-events", "none")
       .attr("text-anchor", "middle")
       .attr("alignment-baseline", "center")
-      .text(d => d.name || "");    
+      .text(d => d.name || "");
 
     const chainGraph = graph
       .append("g")
@@ -278,8 +279,8 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
       .style("opacity", 1)
       .attr("r", config.nodeSize)
       .attr("cx", (d, i) => {
-        if(!d.cx){
-          if(d.level === 0){
+        if (!d.cx) {
+          if (d.level === 0) {
             d.cx = 0;
           } else {
             d.cx = getCenter(d, i).cx;
@@ -288,8 +289,8 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
         return d.cx;
       })
       .attr("cy", (d, i) => {
-        if(!d.cy){
-          if(d.level === 0){
+        if (!d.cy) {
+          if (d.level === 0) {
             d.cy = 0;
           } else {
             d.cy = getCenter(d, i).cy;
@@ -333,7 +334,7 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
       )
       .style("stroke", config.linkColor)
       .attr("stroke-width", config.thickness * 0.5);
-    
+
     nodesWrapper.raise();
 
     //ranger mouse events
@@ -415,8 +416,37 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
     }
     function rangeDblClick(d) {
       moving = true;
+      // resizing = true;
       selectedRangerRef.current = d;
       d3.select(this).attr("cursor", "move");
+
+      graphRanger
+        .append("rect")
+        .attr("class", "dash-rect")
+        .attr("x", d.cx - d.r - 3)
+        .attr("y", d.cy - d.r - 3)
+        .attr("width", d.r * 2 + 6)
+        .attr("height", d.r * 2 + 6)
+        .style("stroke", "grey")
+        .style("fill", "transparent")
+        .style("stroke-dasharray", "3, 3");
+      graphRanger
+        .append("rect")
+        .attr("class", "resize-handle-rect")
+        .attr("x", d.cx + d.r - 7.5)
+        .attr("y", d.cy + d.r - 7.5)
+        .attr("width", 15)
+        .attr("height", 15)
+        .style("stroke", "transparent")
+        .style("stroke-width", 15)
+        .style("fill", "red")
+        .style("cursor", "nw-resize")
+        .call(
+          d3.drag()
+            .on("start", resizeHandlerDragStart)
+            .on("drag", resizeHandlerDragging)
+            .on("end", resizeHandlerDragEnd)
+        );
     }
     function rangeMouseOver(d) {
       d3.select(this).style("stroke", "white");
@@ -498,6 +528,22 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
             .style("stroke", config.linkColor)
             .attr("stroke-width", config.thickness * 0.5);
         });
+    }
+    // resizing mouse events
+    function resizeHandlerDragStart() {
+      moving = false;
+      resizing = true;      
+    }
+    function resizeHandlerDragging() {
+      const m = d3.mouse(this);
+      console.log(m, 'm!!')
+      moving = false;
+      resizing = true;
+      d3.select('.resize-handle-rect')
+        .attr()
+    }
+    function resizeHandlerDragEnd() {
+      resizing = false;
     }
   }, [data, config, width, height]);
 
