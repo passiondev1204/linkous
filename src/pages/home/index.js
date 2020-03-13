@@ -1,7 +1,7 @@
 import React from "react";
 import { Viewer } from "../../components/Viewer";
 import { PackingViewer } from "../../components/PackingViewer";
-import data from "../../data/sample_expanded.json";
+import data from "../../data/nightingale.json";
 
 function HomePage() {
   return (
