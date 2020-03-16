@@ -24,26 +24,26 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-// const zoom = d3.zoom();
+const zoom = d3.zoom();
+const filterPath = (links, direction, idx) => {
+  return direction === 0
+    ? links.filter(link => link.source.id === idx)
+    : links.filter(link => link.target.id === idx);
+};
 
 export const Viewer = ({ data, width, height, config }) => {
   const classes = useStyles();
   const svgRef = React.useRef();
   const tooltipContentRef = React.useRef();
-  const timeoutRef = React.useRef();
   const [tooltipAnchorEl, setTooltipAnchorEl] = React.useState(null);
-  
 
-  // React.useEffect(() => {
-  //   d3.select(".graph").call(zoom.transform, `translate(${width / 2}, ${height / 2})scale(1)`);
-  //   // d3.select(".graph")
-  //   //   .attr("transform", `translate(${width / 2}, ${height / 2})`);
-  //   d3.select(svgRef.current).call(
-  //     zoom.on("zoom", function() {
-  //       d3.select(".graph").attr("transform", d3.event.transform);
-  //     })
-  //   );
-  // }, []);
+  React.useEffect(() => {
+    d3.select(svgRef.current).call(
+      zoom.on("zoom", function() {
+        d3.select(".graph").attr("transform", d3.event.transform);
+      })
+    );
+  }, []);
 
   React.useEffect(() => {
     const getCenter = (node, index, lcInfo) => {
@@ -56,17 +56,38 @@ export const Viewer = ({ data, width, height, config }) => {
       };
     };
 
-    data.links = data.links
-      .map(link => ({
-        ...link,
-        source: data.nodes.find(({ id }) => id === link.node1),
-        target: data.nodes.find(({ id }) => id === link.node2)
-      }))
-      .filter(link => link.source || link.target);
+    const cx = width / 2,
+      cy = height / 2;
 
-    const graph = d3
-      .select(".graph")
-      .attr("transform", `translate(${width / 2}, ${height / 2})`);
+    data.links = data.links.map(link => {
+      let source = data.nodes.find(({ id }) => id === link.node1);
+      let target = data.nodes.find(({ id }) => id === link.node2);
+      let tmpNode = null;
+      if (source.Level < target.Level) {
+        tmpNode = source;
+        source = target;
+        target = tmpNode;
+      }
+      return {
+        ...link,
+        source: source,
+        target: target
+      };
+    });
+
+    let pathArr = [];
+
+    for (let i = config.levelCounts - 1; i > 0; i--) {
+      let currentLinks = data.links.filter(
+        link =>
+          (link.source.Level === i && link.target.Level === i - 1) ||
+          (link.target.Level === i && link.source.Level === i - 1)
+      );
+      pathArr.push(currentLinks);
+    }
+
+    console.log(pathArr, "pathArr");
+    const graph = d3.select(".graph");
     graph.selectAll("*").remove();
 
     const circleWrapper = graph.append("g").attr("class", "circles-wrapper");
@@ -79,6 +100,8 @@ export const Viewer = ({ data, width, height, config }) => {
       .data(Object.values(config.levelCircles))
       .enter()
       .append("circle")
+      .attr("cx", cx)
+      .attr("cy", cy)
       .attr("r", (d, i) => {
         const nodesOfLevel = data.nodes.filter(n => n.Level === i).length;
         const radius =
@@ -119,19 +142,27 @@ export const Viewer = ({ data, width, height, config }) => {
         .attr("stroke", d => config.levelCircles["Level" + d.Level].nodeStroke)
         .style("cursor", "pointer")
         .style("opacity", 0)
+        .attr("cx", cx)
+        .attr("cy", cy)
         .on("mouseover", nodeMouseOver)
         .on("mouseout", nodeMouseOut)
         .transition()
         .duration(config.duration)
         .style("opacity", 1)
-        .attr("r", config.nodeSize)
+        .attr("r", d => {
+          const links_count = data.links.filter(
+            link => d.id === link.node1 || d.id === link.node2
+          ).length;
+          d.r = config.nodeSize + links_count * config.nodeSizeStep;
+          return d.r;
+        })
         .attr(
           "cx",
-          (d, i) => (d.cx = getCenter(d, i, levelCircleInfo[level]).cx)
+          (d, i) => (d.cx = cx + getCenter(d, i, levelCircleInfo[level]).cx)
         )
         .attr(
           "cy",
-          (d, i) => (d.cy = getCenter(d, i, levelCircleInfo[level]).cy)
+          (d, i) => (d.cy = cy + getCenter(d, i, levelCircleInfo[level]).cy)
         );
 
       nodes
@@ -141,12 +172,14 @@ export const Viewer = ({ data, width, height, config }) => {
         .style("font-size", 11)
         .style("fill", config.nodeTextColor)
         .style("pointer-events", "none")
+        .attr("x", cx)
+        .attr("y", cy)
         .raise()
         .transition()
         .duration(config.duration)
         .style("opacity", 1)
         .attr("x", d => d.cx)
-        .attr("y", d => d.cy - config.nodeSize * 1.5)
+        .attr("y", d => d.cy - d.r - 5)
         .text(d => d.name);
     }
 
@@ -156,7 +189,7 @@ export const Viewer = ({ data, width, height, config }) => {
       .enter()
       .append("path")
       .attr("class", d => `link link-${d.source.id}-${d.target.id}`)
-      .attr("d", `M0 0L0 0`)
+      .attr("d", `M${cx} ${cy}L${cx} ${cy}`)
       .transition()
       .duration(config.duration)
       .style("pointer-events", "none")
@@ -170,13 +203,49 @@ export const Viewer = ({ data, width, height, config }) => {
     nodesWrapper.raise();
 
     function nodeMouseOver(d) {
-      clearTimeout(timeoutRef.current);
       tooltipContentRef.current = d;
       setTooltipAnchorEl(d3.event.currentTarget);
-      timeoutRef.current = setTimeout(() => {
-        setTooltipAnchorEl(null);
-      }, 2000);
 
+      let filteredPathArr = [[], [], []];
+      if (d.Level === 2) {
+        filteredPathArr[0] = filterPath(pathArr[0], 1, d.id);
+        filteredPathArr[1] = filterPath(pathArr[1], 0, d.id);
+        for (let i = 0; i < filteredPathArr[1].length; i++)
+          filteredPathArr[2] = [
+            ...filteredPathArr[2],
+            ...filterPath(pathArr[2], 0, filteredPathArr[1][i].target.id)
+          ];
+      }
+      if (d.Level === 3) {
+        filteredPathArr[0] = filterPath(pathArr[0], 0, d.id);
+        for (let i = 0; i < filteredPathArr[0].length; i++)
+          filteredPathArr[1] = [
+            ...filteredPathArr[1],
+            ...filterPath(pathArr[1], 0, filteredPathArr[0][i].target.id)
+          ];
+        for (let i = 0; i < filteredPathArr[1].length; i++)
+          filteredPathArr[2] = [
+            ...filteredPathArr[2],
+            ...filterPath(pathArr[2], 0, filteredPathArr[1][i].target.id)
+          ];
+      }
+      if (d.Level === 1) {
+        filteredPathArr[2] = filterPath(pathArr[2], 0, d.id);
+        for (let i = 0; i < filteredPathArr[2].length; i++)
+          filteredPathArr[1] = [
+            ...filteredPathArr[1],
+            ...filterPath(pathArr[1], 1, filteredPathArr[2][i].source.id)
+          ];
+        for (let i = 0; i < filteredPathArr[1].length; i++)
+          filteredPathArr[0] = [
+            ...filteredPathArr[0],
+            ...filterPath(pathArr[0], 1, filteredPathArr[1][i].source.id)
+          ];
+      }
+      filteredPathArr[0] = [...new Set(filteredPathArr[0])];
+      filteredPathArr[1] = [...new Set(filteredPathArr[1])];
+      filteredPathArr[2] = [...new Set(filteredPathArr[2])];
+      console.log(filteredPathArr, 'paths')
       d3.select(this)
         .style("stroke", config.highlightColor)
         .attr("stroke-width", config.thickness);
@@ -184,32 +253,81 @@ export const Viewer = ({ data, width, height, config }) => {
         .filter(link => link.node1 === d.id || link.node2 === d.id)
         .forEach(link => {
           linksWrapper
-            .append("path")
-            .attr("class", "effect-rect")
-            .attr(
-              "d",
-              `M${link.source.cx} ${link.source.cy}L${link.source.cx} ${link.source.cy}`
-            )
-            .style("stroke", config.highlightColor)
-            .style("stroke-width", config.thickness)
-            .transition()
-            .duration(config.duration)
-            .attr(
-              "d",
-              `M${link.source.cx} ${link.source.cy}L${link.target.cx} ${link.target.cy}`
-            );
+            .select(`.link-${link.node1}-${link.node2}`)
+            .style("stroke", config.linkHighlightColor)
+            .attr("stroke-width", config.thickness * 3)
+            .raise();
         });
+
+      linksWrapper
+        .selectAll(".level3-paths")
+        .data(filteredPathArr[0])
+        .enter()
+        .append("path")
+        .attr("class", "effect-line level3-paths")
+        .style("stroke", config.linkEffectColor)
+        .style("stroke-width", config.thickness)
+        .attr(
+          "d",
+          d => `M${d.source.cx} ${d.source.cy}L ${d.source.cx} ${d.source.cy}`
+        )
+        .transition().duration(config.duration)
+        .attr(
+          "d",
+          d => `M${d.source.cx} ${d.source.cy}L ${d.target.cx} ${d.target.cy}`
+        )
+
+      linksWrapper
+        .selectAll(".level2-paths")
+        .data(filteredPathArr[1])
+        .enter()
+        .append("path")
+        .attr("class", "effect-line level2-paths")
+        .style("stroke", config.linkEffectColor)
+        .style("stroke-width", config.thickness)
+        .attr(
+          "d",
+          d => `M${d.source.cx} ${d.source.cy}L ${d.source.cx} ${d.source.cy}`
+        )
+        .transition().delay(config.duration).duration(config.duration * 2)
+        .attr(
+          "d",
+          d => `M${d.source.cx} ${d.source.cy}L ${d.target.cx} ${d.target.cy}`
+        );
+      linksWrapper
+        .selectAll(".level1-paths")
+        .data(filteredPathArr[2])
+        .enter()
+        .append("path")
+        .attr("class", "effect-line level1-paths")
+        .style("stroke", config.linkEffectColor)
+        .style("stroke-width", config.thickness)
+        .attr(
+          "d",
+          d => `M${d.source.cx} ${d.source.cy}L ${d.source.cx} ${d.source.cy}`
+        )
+        .transition().delay(config.duration * 2).duration(config.duration * 2)
+        .attr(
+          "d",
+          d => `M${d.source.cx} ${d.source.cy}L ${d.target.cx} ${d.target.cy}`
+        );
     }
     function nodeMouseOut(d) {
       setTooltipAnchorEl(null);
       d3.select(this)
         .style("stroke", config.levelCircles["Level" + d.Level].nodeStroke)
         .attr("stroke-width", config.thickness * 2);
-      linksWrapper.selectAll(".effect-rect").remove();
+      linksWrapper.selectAll(".effect-line").remove();
+      data.links
+        .filter(link => link.node1 === d.id || link.node2 === d.id)
+        .forEach(link => {
+          linksWrapper
+            .select(`.link-${link.node1}-${link.node2}`)
+            .style("stroke", config.linkColor)
+            .attr("stroke-width", config.thickness * 0.5)
+            .lower();
+        });
     }
-    return () => {
-      clearTimeout(timeoutRef.current);
-    };
   }, [data, config, width, height]);
   return (
     <>

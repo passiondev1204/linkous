@@ -69,14 +69,18 @@ function HomePage() {
         height={900}
         config={{
           duration: 500,
-          nodeSize: 12,
+          nodeSize: 10,
           thickness: 3,
           linkColor: "#888",
           highlightColor: "white",
+          linkHighlightColor: "#888",
+          linkEffectColor: "white",
+          nodeSizeStep: 2,
           backgroundColor: "#131f26",
           nodeTextColor: 'white',
-          baseRadius: 45,
+          baseRadius: 60,
           offsetRadius: 100,
+          levelCounts: 4,
           levelCircles: {
             Level0: {
               fill: global.color.MEDIUM.light,
