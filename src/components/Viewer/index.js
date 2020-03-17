@@ -1,17 +1,16 @@
 import React from "react";
 import * as d3 from "d3";
 import { Wrapper } from "../Wrapper";
-import { makeStyles, Popover } from "@material-ui/core";
-// import crown from "../../assets/crown-solid.svg";
+import { makeStyles, Popper, Fade, Paper, Typography } from "@material-ui/core";
+import { ToggleButton, ToggleButtonGroup } from "@material-ui/lab";
+import FiberManualRecordIcon from "@material-ui/icons/FiberManualRecord";
+import ImageIcon from "@material-ui/icons/Image";
 
 const useStyles = makeStyles(theme => ({
-  popover: {
-    pointerEvents: "none",
+  paper: {
+    padding: theme.spacing(1),
     marginTop: theme.spacing(1),
     fontSize: 12
-  },
-  paper: {
-    padding: theme.spacing(1)
   },
   titleSection: {
     fontWeight: 500,
@@ -21,6 +20,19 @@ const useStyles = makeStyles(theme => ({
     "& span": {
       whiteSpace: "nowrap"
     }
+  },
+  toggleContainer: {
+    margin: theme.spacing(2, 0),
+    position: "absolute"
+  },
+  ringInfo: {
+    padding: theme.spacing(1),
+    position: 'absolute',
+    right: theme.spacing(2),
+    bottom: theme.spacing(2)
+  },
+  svgContainer: {
+    position: 'absolute'
   }
 }));
 
@@ -34,8 +46,11 @@ const filterPath = (links, direction, idx) => {
 export const Viewer = ({ data, width, height, config }) => {
   const classes = useStyles();
   const svgRef = React.useRef();
+  const timeoutRef = React.useRef();
   const tooltipContentRef = React.useRef();
   const [tooltipAnchorEl, setTooltipAnchorEl] = React.useState(null);
+  const [tooltipOpen, setTooltipOpen] = React.useState(false);
+  const [showType, setShowType] = React.useState("circle");
 
   React.useEffect(() => {
     d3.select(svgRef.current).call(
@@ -86,7 +101,6 @@ export const Viewer = ({ data, width, height, config }) => {
       pathArr.push(currentLinks);
     }
 
-    console.log(pathArr, "pathArr");
     const graph = d3.select(".graph");
     graph.selectAll("*").remove();
 
@@ -133,37 +147,68 @@ export const Viewer = ({ data, width, height, config }) => {
         .data(data.nodes.filter(d => d.Level === level))
         .enter()
         .append("g");
-
-      nodes
-        .append("circle")
-        // .attr("class", d => `node node-circle-${d.id}`)
-        .attr("fill", d => config.levelCircles["Level" + d.Level].nodeColor)
-        .attr("stroke-width", config.thickness * 2)
-        .attr("stroke", d => config.levelCircles["Level" + d.Level].nodeStroke)
-        .style("cursor", "pointer")
-        .style("opacity", 0)
-        .attr("cx", cx)
-        .attr("cy", cy)
-        .on("mouseover", nodeMouseOver)
-        .on("mouseout", nodeMouseOut)
-        .transition()
-        .duration(config.duration)
-        .style("opacity", 1)
-        .attr("r", d => {
-          const links_count = data.links.filter(
-            link => d.id === link.node1 || d.id === link.node2
-          ).length;
-          d.r = config.nodeSize + links_count * config.nodeSizeStep;
-          return d.r;
-        })
-        .attr(
-          "cx",
-          (d, i) => (d.cx = cx + getCenter(d, i, levelCircleInfo[level]).cx)
-        )
-        .attr(
-          "cy",
-          (d, i) => (d.cy = cy + getCenter(d, i, levelCircleInfo[level]).cy)
-        );
+      if (showType === "circle") {
+        nodes
+          .append("circle")
+          .attr("fill", d => config.levelCircles["Level" + d.Level].nodeColor)
+          .attr("stroke-width", config.thickness * 2)
+          .attr(
+            "stroke",
+            d => config.levelCircles["Level" + d.Level].nodeStroke
+          )
+          .style("cursor", "pointer")
+          .style("opacity", 0)
+          .attr("cx", cx)
+          .attr("cy", cy)
+          .on("mouseover", nodeMouseOver)
+          .on("mouseout", nodeMouseOut)
+          .transition()
+          .duration(config.duration)
+          .style("opacity", 1)
+          .attr("r", d => {
+            const links_count = data.links.filter(
+              link => d.id === link.node1 || d.id === link.node2
+            ).length;
+            d.r = config.nodeSize + links_count * config.nodeSizeStep;
+            return d.r;
+          })
+          .attr(
+            "cx",
+            (d, i) => (d.cx = cx + getCenter(d, i, levelCircleInfo[level]).cx)
+          )
+          .attr(
+            "cy",
+            (d, i) => (d.cy = cy + getCenter(d, i, levelCircleInfo[level]).cy)
+          );
+      } else {
+        nodes
+          .append("svg:image")
+          .attr("color", d => config.levelCircles["Level" + d.Level].nodeColor)
+          .attr("x", cx)
+          .attr("y", cy)
+          .style("cursor", "pointer")
+          .on("mouseover", nodeMouseOver)
+          .on("mouseout", nodeMouseOut)
+          .style("opacity", 0)
+          .attr("xlink:href", d => {
+            let iconName = d.Software[0].Icon || 'ei-windows';
+            iconName = iconName.replace('ei-', '');
+            return require(`../../assets/icons/svg/${iconName}.svg`);
+          })
+          .transition()
+          .duration(config.duration)
+          .style("opacity", 1)
+          .attr("x", (d, i) => {
+            d.cx = cx + getCenter(d, i, levelCircleInfo[level]).cx;
+            return d.cx - 20;
+          })
+          .attr("y", (d, i) => {
+            d.cy = cy + getCenter(d, i, levelCircleInfo[level]).cy;
+            return d.cy - 20;
+          })
+          .attr("width", 40)
+          .attr("height", 40);
+      }
 
       nodes
         .append("text")
@@ -204,7 +249,9 @@ export const Viewer = ({ data, width, height, config }) => {
 
     function nodeMouseOver(d) {
       tooltipContentRef.current = d;
+      clearTimeout(timeoutRef.current);
       setTooltipAnchorEl(d3.event.currentTarget);
+      setTooltipOpen(true);
 
       let filteredPathArr = [[], [], []];
       if (d.Level === 2) {
@@ -245,7 +292,7 @@ export const Viewer = ({ data, width, height, config }) => {
       filteredPathArr[0] = [...new Set(filteredPathArr[0])];
       filteredPathArr[1] = [...new Set(filteredPathArr[1])];
       filteredPathArr[2] = [...new Set(filteredPathArr[2])];
-      console.log(filteredPathArr, 'paths')
+      // console.log(filteredPathArr, "paths");
       d3.select(this)
         .style("stroke", config.highlightColor)
         .attr("stroke-width", config.thickness);
@@ -259,61 +306,33 @@ export const Viewer = ({ data, width, height, config }) => {
             .raise();
         });
 
-      linksWrapper
-        .selectAll(".level3-paths")
-        .data(filteredPathArr[0])
-        .enter()
-        .append("path")
-        .attr("class", "effect-line level3-paths")
-        .style("stroke", config.linkEffectColor)
-        .style("stroke-width", config.thickness)
-        .attr(
-          "d",
-          d => `M${d.source.cx} ${d.source.cy}L ${d.source.cx} ${d.source.cy}`
-        )
-        .transition().duration(config.duration)
-        .attr(
-          "d",
-          d => `M${d.source.cx} ${d.source.cy}L ${d.target.cx} ${d.target.cy}`
-        )
-
-      linksWrapper
-        .selectAll(".level2-paths")
-        .data(filteredPathArr[1])
-        .enter()
-        .append("path")
-        .attr("class", "effect-line level2-paths")
-        .style("stroke", config.linkEffectColor)
-        .style("stroke-width", config.thickness)
-        .attr(
-          "d",
-          d => `M${d.source.cx} ${d.source.cy}L ${d.source.cx} ${d.source.cy}`
-        )
-        .transition().delay(config.duration).duration(config.duration * 2)
-        .attr(
-          "d",
-          d => `M${d.source.cx} ${d.source.cy}L ${d.target.cx} ${d.target.cy}`
-        );
-      linksWrapper
-        .selectAll(".level1-paths")
-        .data(filteredPathArr[2])
-        .enter()
-        .append("path")
-        .attr("class", "effect-line level1-paths")
-        .style("stroke", config.linkEffectColor)
-        .style("stroke-width", config.thickness)
-        .attr(
-          "d",
-          d => `M${d.source.cx} ${d.source.cy}L ${d.source.cx} ${d.source.cy}`
-        )
-        .transition().delay(config.duration * 2).duration(config.duration * 2)
-        .attr(
-          "d",
-          d => `M${d.source.cx} ${d.source.cy}L ${d.target.cx} ${d.target.cy}`
-        );
+      filteredPathArr.forEach((fpaths, i) => {
+        linksWrapper
+          .selectAll(`.level${i}-paths`)
+          .data(fpaths)
+          .enter()
+          .append("path")
+          .attr("class", `effect-line level${i}-paths`)
+          .style("stroke", config.linkEffectColor)
+          .style("stroke-width", config.thickness)
+          .attr(
+            "d",
+            d => `M${d.source.cx} ${d.source.cy}L ${d.source.cx} ${d.source.cy}`
+          )
+          .transition()
+          .delay(config.duration * i)
+          .duration(config.duration)
+          .attr(
+            "d",
+            d => `M${d.source.cx} ${d.source.cy}L ${d.target.cx} ${d.target.cy}`
+          );
+      });
     }
     function nodeMouseOut(d) {
-      setTooltipAnchorEl(null);
+      timeoutRef.current = setTimeout(() => {
+        setTooltipOpen(false);
+        setTooltipAnchorEl(null);
+      }, config.duration);
       d3.select(this)
         .style("stroke", config.levelCircles["Level" + d.Level].nodeStroke)
         .attr("stroke-width", config.thickness * 2);
@@ -328,67 +347,92 @@ export const Viewer = ({ data, width, height, config }) => {
             .lower();
         });
     }
-  }, [data, config, width, height]);
+  }, [data, config, width, height, showType]);
   return (
     <>
-      <svg
-        ref={svgRef}
-        width={width}
-        height={height}
-        style={{ backgroundColor: config.backgroundColor }}
-      >
-        <g className="graph" />
-      </svg>
-      <Popover
-        id="tooltip-popover"
-        className={classes.popover}
-        classes={{
-          paper: classes.paper
-        }}
-        open={Boolean(tooltipAnchorEl)}
+      <div className={classes.svgContainer}>
+        <svg
+          ref={svgRef}
+          width={width}
+          height={height}
+          style={{ backgroundColor: config.backgroundColor }}
+        >
+          <g className="graph" />
+        </svg>
+        <Paper className={classes.ringInfo}>
+          <Typography>Ring 1: {data.nodes.filter(d => d.Level === 1).length}</Typography>
+          <Typography>Ring 2: {data.nodes.filter(d => d.Level === 2).length}</Typography>
+          <Typography>Ring 3: {data.nodes.filter(d => d.Level === 3).length}</Typography>
+        </Paper>
+      </div>
+      <div className={classes.toggleContainer}>
+        <ToggleButtonGroup
+          value={showType}
+          exclusive
+          onChange={(evt, val) =>setShowType(val)}
+        >
+          <ToggleButton value="circle">
+            <FiberManualRecordIcon />
+          </ToggleButton>
+          <ToggleButton value="icon">
+            <ImageIcon />
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </div>
+      <Popper
+        open={tooltipOpen}
         anchorEl={tooltipAnchorEl}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "left"
+        placement={"bottom-start"}
+        onMouseOver={() => {
+          clearTimeout(timeoutRef.current);
         }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "left"
+        onMouseOut={() => {
+          timeoutRef.current = setTimeout(() => {
+            setTooltipOpen(false);
+            setTooltipAnchorEl(null);
+          }, config.duration);
         }}
-        onClose={() => setTooltipAnchorEl(null)}
-        disableRestoreFocus
+        transition
       >
-        {tooltipContentRef.current && (
-          <Wrapper height="auto">
-            <Wrapper
-              height="auto"
-              direction="column"
-              className={classes.titleSection}
-            >
-              <span>Name</span>
-              <span>IP</span>
-              <span>Mask</span>
-              <span>RS</span>
-              <span>RCE</span>
-              <span>LPE</span>
-              <span>Config</span>
-            </Wrapper>
-            <Wrapper
-              height="auto"
-              direction="column"
-              className={classes.descSection}
-            >
-              <span>{tooltipContentRef.current.name}</span>
-              <span>{tooltipContentRef.current.IP}</span>
-              <span>{tooltipContentRef.current.Mask}</span>
-              <span>{tooltipContentRef.current.RS}</span>
-              <span>{tooltipContentRef.current.Conditions[0].RCE}</span>
-              <span>{tooltipContentRef.current.Conditions[0].LPE}</span>
-              <span>{tooltipContentRef.current.Conditions[0].Config}</span>
-            </Wrapper>
-          </Wrapper>
+        {({ TransitionProps }) => (
+          <Fade {...TransitionProps}>
+            <Paper className={classes.paper}>
+              {tooltipContentRef.current && (
+                <Wrapper height="auto">
+                  <Wrapper
+                    height="auto"
+                    direction="column"
+                    className={classes.titleSection}
+                  >
+                    <span>Name</span>
+                    <span>IP</span>
+                    <span>Mask</span>
+                    <span>RS</span>
+                    <span>RCE</span>
+                    <span>LPE</span>
+                    <span>Config</span>
+                  </Wrapper>
+                  <Wrapper
+                    height="auto"
+                    direction="column"
+                    className={classes.descSection}
+                  >
+                    <span>{tooltipContentRef.current.name}</span>
+                    <span>{tooltipContentRef.current.IP}</span>
+                    <span>{tooltipContentRef.current.Mask}</span>
+                    <span>{tooltipContentRef.current.RS}</span>
+                    <span>{tooltipContentRef.current.Conditions[0].RCE}</span>
+                    <span>{tooltipContentRef.current.Conditions[0].LPE}</span>
+                    <span>
+                      {tooltipContentRef.current.Conditions[0].Config}
+                    </span>
+                  </Wrapper>
+                </Wrapper>
+              )}
+            </Paper>
+          </Fade>
         )}
-      </Popover>
+      </Popper>
     </>
   );
 };

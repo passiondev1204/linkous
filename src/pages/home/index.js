@@ -3,7 +3,7 @@ import { Viewer } from "../../components/Viewer";
 import { PackingViewer } from "../../components/PackingViewer";
 import global from "../../global";
 import data from "../../data/sample_expanded.json";
-import data2 from "../../data/nightingale 2020-03-13 15_36_06.json";
+import data2 from "../../data/nightingale_w_icons.json";
 
 function HomePage() {
   return (
@@ -68,7 +68,7 @@ function HomePage() {
         width={1600}
         height={900}
         config={{
-          duration: 500,
+          duration: 1000,
           nodeSize: 10,
           thickness: 3,
           linkColor: "#888",

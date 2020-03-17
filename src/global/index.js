@@ -16,5 +16,5 @@ export default {
       main: "rgb(30, 172, 245)",
       light: "rgba(30, 172, 245, 0.5)"
     }
-  }
+  },
 };
