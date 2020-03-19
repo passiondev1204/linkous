@@ -6,6 +6,8 @@ import { Wrapper } from "../Wrapper";
 import {
   makeStyles,
   Popper,
+  Menu,
+  MenuItem,
   Fade,
   Paper,
   Typography,
@@ -13,6 +15,8 @@ import {
   Switch
 } from "@material-ui/core";
 import { ToggleButton, ToggleButtonGroup } from "@material-ui/lab";
+import CheckBoxIcon from "@material-ui/icons/CheckBox";
+import CheckBoxOutlineBlankIcon from "@material-ui/icons/CheckBoxOutlineBlank";
 import FiberManualRecordIcon from "@material-ui/icons/FiberManualRecord";
 import ImageIcon from "@material-ui/icons/Image";
 import utils from "../../utils";
@@ -50,11 +54,25 @@ const useStyles = makeStyles(theme => ({
     position: "absolute",
     display: "flex",
     justifyContent: "center"
+  },
+  menuItem: {
+    // '&:focus': {
+    //   backgroundColor: theme.palette.primary.main,
+    //   '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
+    //     color: theme.palette.common.white,
+    //   },
+    // }
+  },
+  checkItem: {
+    marginRight: theme.spacing(2)
   }
 }));
 
 const zoom = d3.zoom();
-const fisheye = fisheyer.circular().radius(250).distortion(4);
+const fisheye = fisheyer
+  .circular()
+  .radius(80)
+  .distortion(4);
 
 const filterPath = (links, direction, idx) => {
   return direction === 0
@@ -69,8 +87,22 @@ export const Viewer = ({ data, width, height, config }) => {
   const tooltipContentRef = React.useRef();
   const [tooltipAnchorEl, setTooltipAnchorEl] = React.useState(null);
   const [tooltipOpen, setTooltipOpen] = React.useState(false);
-  const [showType, setShowType] = React.useState("circle");
+  const [darkMode, setDarkMode] = React.useState(true);
+  const [showType, setShowType] = React.useState("circle");  
   const [extendedView, setExtendedView] = React.useState(true);
+  const [magifyMode, setMagnifyMode] = React.useState(false);
+  const [contextPosition, setContextPosition] = React.useState({
+    x: null,
+    y: null
+  });
+
+  const onContextMenu = evt => {
+    evt.preventDefault();
+    setContextPosition({
+      x: evt.clientX - 2,
+      y: evt.clientY - 4
+    });
+  };
 
   React.useEffect(() => {
     d3.select(svgRef.current).call(
@@ -116,7 +148,7 @@ export const Viewer = ({ data, width, height, config }) => {
     }
     const graph = d3.select(".graph");
     graph.selectAll("*").remove();
-
+    
     // magnifier as circle
     const lens = graph
       .append("circle")
@@ -125,6 +157,8 @@ export const Viewer = ({ data, width, height, config }) => {
       .style("stroke", "grey")
       .style("stroke-width", 3)
       .attr("r", fisheye.radius())
+      .style("opacity", magifyMode ? 1 : 0);
+
     const circleWrapper = graph.append("g").attr("class", "circles-wrapper");
     const nodesWrapper = graph.append("g").attr("class", "nodes-wrapper");
     const linksWrapper = graph.append("g").attr("class", "links-wrapper");
@@ -181,7 +215,7 @@ export const Viewer = ({ data, width, height, config }) => {
           )
           .map(d => d.source);
 
-        const rad = childNodes.length * config.baseRadius;
+        const rad = childNodes.length * config.baseRadius * 0.3;
         const outer =
           levelCircleInfo[pNode.Level].radius -
           levelCircleInfo[pNode.Level].distance;
@@ -215,7 +249,11 @@ export const Viewer = ({ data, width, height, config }) => {
         .data(nodes)
         .enter()
         .append("g")
-        .attr("class", `nodes-${levelNo} node-groups`)
+        .attr("class", d => {
+          d.hasRing4 = hasRing4Nodes(d);
+          d.isRing4 = d.Level === config.levelCircles.length - 1 ? true : false;
+          return `nodes-${levelNo} ind-node-${d.id} node-groups ${d.hasRing4 ? 'has-ring4-' + d.id : ''} ${d.isRing4 ? 'ring4-node' : ''}`;
+        })
         .style("opacity", d =>
           d.Level === config.levelCircles.length - 1 ? 0.1 : 1
         );
@@ -226,6 +264,7 @@ export const Viewer = ({ data, width, height, config }) => {
           .attr("stroke-width", config.thickness * 2)
           .attr("stroke", config.levelCircles[levelNo].nodeStroke)
           .style("cursor", "pointer")
+          .on("click", nodeClick)
           .on("mouseover", nodeMouseOver)
           .on("mouseout", nodeMouseOut)
           .attr("r", d => {
@@ -266,6 +305,7 @@ export const Viewer = ({ data, width, height, config }) => {
         nodesG
           .append("svg:image")
           .style("cursor", "pointer")
+          .on("click", nodeClick)
           .on("mouseover", nodeMouseOver)
           .on("mouseout", nodeMouseOut)
           .attr("xlink:href", d => {
@@ -278,15 +318,31 @@ export const Viewer = ({ data, width, height, config }) => {
               link => d.id === link.node1 || d.id === link.node2
             ).length;
             d.r = config.nodeSize + links_count * config.nodeSizeStep;
-            d.cx = cx + getCenter(d.angle, distance).cx;
+            d.angle = (i / nodes.length) * Math.PI;
+            let adjustedDistance = distance;
+            if (patterned) {
+              adjustedDistance = utils.pattern_distance(
+                nodes.length,
+                i + 1,
+                distance
+              );
+            }
+            d.cx = cx + getCenter(d.angle, adjustedDistance).cx;
+            d.x = d.cx;
             return d.cx - d.r;
           })
           .attr("y", (d, i) => {
-            const links_count = data.links.filter(
-              link => d.id === link.node1 || d.id === link.node2
-            ).length;
-            d.r = config.nodeSize + links_count * config.nodeSizeStep;
-            d.cy = cy + getCenter(d.angle, distance).cy;
+            d.angle = (i / nodes.length) * Math.PI;
+            let adjustedDistance = distance;
+            if (patterned) {
+              adjustedDistance = utils.pattern_distance(
+                nodes.length,
+                i + 1,
+                distance
+              );
+            }
+            d.cy = cy + getCenter(d.angle, adjustedDistance).cy;
+            d.y = d.cy;
             return d.cy - d.r;
           })
           .attr("width", d => {
@@ -307,7 +363,8 @@ export const Viewer = ({ data, width, height, config }) => {
       nodesG
         .append("text")
         .attr("text-anchor", "middle")
-        .style("font-size", 11)
+        .attr("alignment-baseline", "ideographic")
+        .style("font-size", d => d.fs = 12)
         .style("fill", config.nodeTextColor)
         .style("pointer-events", "none")
         .attr("x", d => d.x)
@@ -341,28 +398,133 @@ export const Viewer = ({ data, width, height, config }) => {
       });
     }
     nodesWrapper.raise();
-    
+
     graph.on("mousemove", function() {
-      const m = d3.mouse(this);      
+      if(!magifyMode) return;
+      const m = d3.mouse(this);
       fisheye.focus(m);
-      lens.attr('cx', m[0]).attr('cy', m[1]);
-      nodesWrapper.selectAll(".node-groups")
-        .each(d => {          
-          d.fisheye = fisheye(d);
-        })
-        .select("circle")
-        .attr('cx', d => d.fisheye.x)
-        .attr('cy', d => d.fisheye.y)
-        .attr('r', d => d.r * d.fisheye.z)
-      nodesWrapper.selectAll(".node-groups")
+      lens.attr("cx", m[0]).attr("cy", m[1]);
+      if(showType === 'circle'){
+        nodesWrapper
+          .selectAll(".node-groups")
+          .each(d => {
+            d.fisheye = fisheye(d);
+          })
+          .select("circle")
+          .attr("cx", d => d.fisheye.x)
+          .attr("cy", d => d.fisheye.y)
+          .attr("r", d => d.r * d.fisheye.z * 0.8);
+      } else {
+        nodesWrapper
+          .selectAll(".node-groups")
+          .each(d => {
+            d.fisheye = fisheye(d);
+          })
+          .select("image")
+          .attr("x", d => d.fisheye.x - d.r * d.fisheye.z * 0.8)
+          .attr("y", d => d.fisheye.y - d.r * d.fisheye.z * 0.8)
+          .attr("width", d => d.r * 2 * d.fisheye.z)
+          .attr("height", d => d.r * 2 * d.fisheye.z)
+      }
+      nodesWrapper
+        .selectAll(".node-groups")
         .select("text")
-        .attr('x', d => d.fisheye.x)
-        .attr('y', d => d.fisheye.y - d.r * d.fisheye.z- 5)
-        // .style('font-size', d => d.fisheye.z * 12)
-      linksWrapper.selectAll(".links")
-        .attr('d', d => `M${d.source.fisheye.x} ${d.source.fisheye.y}L${d.target.fisheye.x} ${d.target.fisheye.y}`)        
+        .attr("x", d => d.fisheye.x)
+        .attr("y", d => d.fisheye.y - d.r * d.fisheye.z - 5)
+        .attr('font-size', d => d.fisheye.z * (d.fs) )
+        .style('font-size', d => d.fisheye.z * (d.fs) )
+      linksWrapper
+        .selectAll(".links")
+        .attr(
+          "d",
+          d =>
+            `M${d.source.fisheye.x} ${d.source.fisheye.y}L${d.target.fisheye.x} ${d.target.fisheye.y}`
+        );
     });
 
+    function nodeClick(d) {
+      if(!d.hasRing4 || !extendedView) return;
+        let childNodes = [];
+        nodesHasRing4.forEach(pNode => {
+          childNodes = data.links
+            .filter(
+              link =>
+                link.target.id === pNode.id &&
+                link.source.Level === config.levelCircles.length - 1
+            )
+            .map(d => d.source);
+
+          childNodes.forEach(child => {
+            nodesWrapper.select(`.ind-node-${child.id}`).remove();
+          })
+
+          const rad = childNodes.length * config.baseRadius * 0.3;
+          const outer =
+            levelCircleInfo[pNode.Level].radius -
+            levelCircleInfo[pNode.Level].distance;
+          generateGroup(
+            pNode.cx + Math.cos(pNode.angle * 2) * (outer + rad) * 1.5,
+            pNode.cy + Math.sin(pNode.angle * 2) * (outer + rad) * 1.5,
+            rad,
+            childNodes,
+            data.links,
+            config.levelCircles.length - 1,
+            true
+          );
+          childNodes.forEach(child => {
+            nodesWrapper.select(`.ind-node-${child.id}`).style("opacity", 0.1);
+          })
+        });
+
+      linksWrapper
+        .selectAll(".links")
+        .attr(
+          "d",
+          d => `M${d.source.x} ${d.source.y}L${d.target.x} ${d.target.y}`
+        )        
+        .style("opacity", d =>
+          d.source.Level === config.levelCircles.length - 1 ? 0.1 : 1
+        ).lower();
+        
+      const outer =
+        levelCircleInfo[d.Level].radius -
+        levelCircleInfo[d.Level].distance;
+      let newChildNodes = data.links
+        .filter(
+          link =>
+            link.target.id === d.id &&
+            link.source.Level === config.levelCircles.length - 1
+        )
+        .map(d => d.source);
+
+      const rad = newChildNodes.length * config.baseRadius;
+      
+      newChildNodes.forEach(child => {
+        nodesWrapper.select(`.ind-node-${child.id}`).remove();
+      })
+
+      generateGroup(
+        d.cx + Math.cos(d.angle * 2) * (outer + rad) * 1.5,
+        d.cy + Math.sin(d.angle * 2) * (outer + rad) * 1.5,
+        rad,
+        newChildNodes,
+        data.links,
+        config.levelCircles.length - 1,
+        true
+      );
+      newChildNodes.forEach(child => {
+        nodesWrapper.select(`.ind-node-${child.id}`).style("opacity", 0.4);
+      })
+      linksWrapper
+        .selectAll(".links")
+        .attr(
+          "d",
+          d => `M${d.source.x} ${d.source.y}L${d.target.x} ${d.target.y}`
+        )        
+        .style("opacity", d => newChildNodes.map(e => e.id).includes(d.source.id) ? 0.4 : 'auto').lower();
+
+      nodesWrapper.raise();
+    }
     function nodeMouseOver(d) {
       tooltipContentRef.current = d;
       clearTimeout(timeoutRef.current);
@@ -442,7 +604,7 @@ export const Viewer = ({ data, width, height, config }) => {
             )
             .raise();
         });
-
+      if(magifyMode) return;
       filteredPathArr.forEach((fpaths, i) => {
         linksWrapper
           .selectAll(`.level${i}-paths`)
@@ -502,7 +664,8 @@ export const Viewer = ({ data, width, height, config }) => {
             )
             .lower();
         });
-    }
+    }    
+
     function getCenter(angle, distance) {
       return {
         cx: distance * Math.cos(angle * 2),
@@ -518,10 +681,10 @@ export const Viewer = ({ data, width, height, config }) => {
         ).length > 0
       );
     }
-  }, [data, config, width, height, showType, extendedView]);
+  }, [data, config, width, height, showType, extendedView, magifyMode]);
   return (
     <>
-      <div className={classes.svgContainer}>
+      <div className={classes.svgContainer} onContextMenu={onContextMenu}>
         <svg
           ref={svgRef}
           width={width}
@@ -550,6 +713,17 @@ export const Viewer = ({ data, width, height, config }) => {
           <FormControlLabel
             control={
               <Switch
+                checked={darkMode}
+                onChange={() => setDarkMode(!darkMode)}
+                color="primary"
+              />
+            }
+            label={darkMode ? 'Dark' : 'White'}
+            labelPlacement="top"
+          />
+          <FormControlLabel
+            control={
+              <Switch
                 checked={extendedView}
                 onChange={() => setExtendedView(!extendedView)}
                 color="primary"
@@ -571,7 +745,7 @@ export const Viewer = ({ data, width, height, config }) => {
           </Typography>
         </Paper>
       </div>
-      <Popper
+      {!magifyMode && <Popper
         open={tooltipOpen}
         anchorEl={tooltipAnchorEl}
         placement={"bottom-start"}
@@ -624,7 +798,29 @@ export const Viewer = ({ data, width, height, config }) => {
             </Paper>
           </Fade>
         )}
-      </Popper>
+      </Popper>}
+      <Menu
+        keepMounted
+        open={contextPosition.y !== null}
+        onClose={() => setContextPosition({ x: null, y: null })}
+        anchorReference="anchorPosition"
+        anchorPosition={
+          contextPosition.y !== null && contextPosition.x !== null
+            ? { top: contextPosition.y, left: contextPosition.x }
+            : undefined
+        }
+      >
+        <MenuItem
+          onClick={() => {
+            setContextPosition({ x: null, y: null });
+            setMagnifyMode(!magifyMode);
+          }}
+          className={classes.menuItem}
+        >
+          {magifyMode ? <CheckBoxIcon className={classes.checkItem} /> : <CheckBoxOutlineBlankIcon className={classes.checkItem} />}
+          Magnifier
+        </MenuItem>
+      </Menu>
     </>
   );
 };
