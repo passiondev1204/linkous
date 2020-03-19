@@ -1,15 +1,27 @@
 import React from "react";
 import * as d3 from "d3";
+// import * as d3Fisheye from "d3-fisheye";
+import fisheyer from "./fisheye";
 import { Wrapper } from "../Wrapper";
-import { makeStyles, Popper, Fade, Paper, Typography } from "@material-ui/core";
+import {
+  makeStyles,
+  Popper,
+  Fade,
+  Paper,
+  Typography,
+  FormControlLabel,
+  Switch
+} from "@material-ui/core";
 import { ToggleButton, ToggleButtonGroup } from "@material-ui/lab";
 import FiberManualRecordIcon from "@material-ui/icons/FiberManualRecord";
 import ImageIcon from "@material-ui/icons/Image";
+import utils from "../../utils";
 
 const useStyles = makeStyles(theme => ({
   paper: {
     padding: theme.spacing(1),
     marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(1),
     fontSize: 12
   },
   titleSection: {
@@ -22,21 +34,28 @@ const useStyles = makeStyles(theme => ({
     }
   },
   toggleContainer: {
-    margin: theme.spacing(2, 0),
-    position: "absolute"
+    top: theme.spacing(2),
+    position: "absolute",
+    padding: theme.spacing(1),
+    display: "flex",
+    alignItems: "center"
   },
   ringInfo: {
     padding: theme.spacing(1),
-    position: 'absolute',
+    position: "absolute",
     right: theme.spacing(2),
     bottom: theme.spacing(2)
   },
   svgContainer: {
-    position: 'absolute'
+    position: "absolute",
+    display: "flex",
+    justifyContent: "center"
   }
 }));
 
 const zoom = d3.zoom();
+const fisheye = fisheyer.circular().radius(250).distortion(4);
+
 const filterPath = (links, direction, idx) => {
   return direction === 0
     ? links.filter(link => link.source.id === idx)
@@ -51,6 +70,7 @@ export const Viewer = ({ data, width, height, config }) => {
   const [tooltipAnchorEl, setTooltipAnchorEl] = React.useState(null);
   const [tooltipOpen, setTooltipOpen] = React.useState(false);
   const [showType, setShowType] = React.useState("circle");
+  const [extendedView, setExtendedView] = React.useState(true);
 
   React.useEffect(() => {
     d3.select(svgRef.current).call(
@@ -61,18 +81,13 @@ export const Viewer = ({ data, width, height, config }) => {
   }, []);
 
   React.useEffect(() => {
-    const getCenter = (node, index, lcInfo) => {
-      const angle =
-        (index / data.nodes.filter(e => e.Level === node.Level).length) *
-        Math.PI;
-      return {
-        cx: lcInfo.distance * Math.cos(angle * 2),
-        cy: lcInfo.distance * Math.sin(angle * 2)
-      };
-    };
-
-    const cx = width / 2,
-      cy = height / 2;
+    let maxNodesOfLevel = Math.max(
+      data.nodes.filter(n => n.Level === 1).length,
+      data.nodes.filter(n => n.Level === 2).length,
+      data.nodes.filter(n => n.Level === 3).length
+    );
+    const base_cx = width / 2,
+      base_cy = height / 2;
 
     data.links = data.links.map(link => {
       let source = data.nodes.find(({ id }) => id === link.node1);
@@ -89,10 +104,9 @@ export const Viewer = ({ data, width, height, config }) => {
         target: target
       };
     });
-
     let pathArr = [];
 
-    for (let i = config.levelCounts - 1; i > 0; i--) {
+    for (let i = config.levelCircles.length - 2; i > 0; i--) {
       let currentLinks = data.links.filter(
         link =>
           (link.source.Level === i && link.target.Level === i - 1) ||
@@ -100,34 +114,34 @@ export const Viewer = ({ data, width, height, config }) => {
       );
       pathArr.push(currentLinks);
     }
-
     const graph = d3.select(".graph");
     graph.selectAll("*").remove();
 
+    // magnifier as circle
+    const lens = graph
+      .append("circle")
+      .attr("class", "lens")
+      .style("fill", "transparent")
+      .style("stroke", "grey")
+      .style("stroke-width", 3)
+      .attr("r", fisheye.radius())
     const circleWrapper = graph.append("g").attr("class", "circles-wrapper");
     const nodesWrapper = graph.append("g").attr("class", "nodes-wrapper");
     const linksWrapper = graph.append("g").attr("class", "links-wrapper");
 
     let levelCircleInfo = [];
+
     circleWrapper
       .selectAll("circle")
-      .data(Object.values(config.levelCircles))
+      .data(config.levelCircles)
       .enter()
       .append("circle")
-      .attr("cx", cx)
-      .attr("cy", cy)
+      .attr("cx", base_cx)
+      .attr("cy", base_cy)
       .attr("r", (d, i) => {
-        const nodesOfLevel = data.nodes.filter(n => n.Level === i).length;
-        const radius =
-          i === 0
-            ? 0
-            : levelCircleInfo[i - 1].radius +
-              (nodesOfLevel * config.baseRadius) / (i + 1);
+        const radius = i * maxNodesOfLevel * config.baseRadius;
         const distance =
-          i === 0
-            ? 0
-            : levelCircleInfo[i - 1].radius +
-              (radius - levelCircleInfo[i - 1].radius) * 0.6;
+          i > 0 ? (radius + levelCircleInfo[i - 1].radius) * 0.5 : 0;
         levelCircleInfo.push({ radius, distance });
         return radius;
       })
@@ -137,115 +151,217 @@ export const Viewer = ({ data, width, height, config }) => {
       .style("opacity", 0.5)
       .lower();
 
-    for (
-      let level = 0;
-      level < Object.keys(config.levelCircles).length;
-      level++
-    ) {
-      const nodes = nodesWrapper
-        .selectAll(".node" + level)
-        .data(data.nodes.filter(d => d.Level === level))
-        .enter()
-        .append("g");
-      if (showType === "circle") {
-        nodes
-          .append("circle")
-          .attr("fill", d => config.levelCircles["Level" + d.Level].nodeColor)
-          .attr("stroke-width", config.thickness * 2)
-          .attr(
-            "stroke",
-            d => config.levelCircles["Level" + d.Level].nodeStroke
+    for (let i = 0; i < config.levelCircles.length - 1; i++) {
+      generateGroup(
+        base_cx,
+        base_cy,
+        levelCircleInfo[i].distance,
+        data.nodes.filter(node => node.Level === i),
+        data.links,
+        i
+      );
+    }
+
+    //for ring 4
+    const nodesHasRing4 = [];
+    data.nodes.forEach(node => {
+      if (hasRing4Nodes(node)) {
+        nodesHasRing4.push(node);
+      }
+    });
+
+    if (extendedView) {
+      let childNodes;
+      nodesHasRing4.forEach(pNode => {
+        childNodes = data.links
+          .filter(
+            link =>
+              link.target.id === pNode.id &&
+              link.source.Level === config.levelCircles.length - 1
           )
+          .map(d => d.source);
+
+        const rad = childNodes.length * config.baseRadius;
+        const outer =
+          levelCircleInfo[pNode.Level].radius -
+          levelCircleInfo[pNode.Level].distance;
+        generateGroup(
+          pNode.cx + Math.cos(pNode.angle * 2) * (outer + rad) * 1.5,
+          pNode.cy + Math.sin(pNode.angle * 2) * (outer + rad) * 1.5,
+          rad,
+          childNodes,
+          data.links,
+          config.levelCircles.length - 1,
+          true
+        );
+      });
+    } else {
+      nodesWrapper
+        .selectAll(`.nodes-${config.levelCircles.length - 1}`)
+        .remove();
+    }
+
+    function generateGroup(
+      cx,
+      cy,
+      distance,
+      nodes,
+      links,
+      levelNo,
+      patterned = false
+    ) {
+      const nodesG = nodesWrapper
+        .selectAll("nodes")
+        .data(nodes)
+        .enter()
+        .append("g")
+        .attr("class", `nodes-${levelNo} node-groups`)
+        .style("opacity", d =>
+          d.Level === config.levelCircles.length - 1 ? 0.1 : 1
+        );
+      if (showType === "circle") {
+        nodesG
+          .append("circle")
+          .attr("fill", config.levelCircles[levelNo].nodeColor)
+          .attr("stroke-width", config.thickness * 2)
+          .attr("stroke", config.levelCircles[levelNo].nodeStroke)
           .style("cursor", "pointer")
-          .style("opacity", 0)
-          .attr("cx", cx)
-          .attr("cy", cy)
           .on("mouseover", nodeMouseOver)
           .on("mouseout", nodeMouseOut)
-          .transition()
-          .duration(config.duration)
-          .style("opacity", 1)
           .attr("r", d => {
-            const links_count = data.links.filter(
+            const links_count = links.filter(
               link => d.id === link.node1 || d.id === link.node2
             ).length;
             d.r = config.nodeSize + links_count * config.nodeSizeStep;
             return d.r;
           })
-          .attr(
-            "cx",
-            (d, i) => (d.cx = cx + getCenter(d, i, levelCircleInfo[level]).cx)
-          )
-          .attr(
-            "cy",
-            (d, i) => (d.cy = cy + getCenter(d, i, levelCircleInfo[level]).cy)
-          );
+          .attr("cx", (d, i) => {
+            d.angle = (i / nodes.length) * Math.PI;
+            let adjustedDistance = distance;
+            if (patterned) {
+              adjustedDistance = utils.pattern_distance(
+                nodes.length,
+                i + 1,
+                distance
+              );
+            }
+            d.cx = cx + getCenter(d.angle, adjustedDistance).cx;
+            d.x = d.cx;
+            return d.cx;
+          })
+          .attr("cy", (d, i) => {
+            let adjustedDistance = distance;
+            if (patterned) {
+              adjustedDistance = utils.pattern_distance(
+                nodes.length,
+                i + 1,
+                distance
+              );
+            }
+            d.cy = cy + getCenter(d.angle, adjustedDistance).cy;
+            d.y = d.cy;
+            return d.cy;
+          });
       } else {
-        nodes
+        nodesG
           .append("svg:image")
-          .attr("color", d => config.levelCircles["Level" + d.Level].nodeColor)
-          .attr("x", cx)
-          .attr("y", cy)
           .style("cursor", "pointer")
           .on("mouseover", nodeMouseOver)
           .on("mouseout", nodeMouseOut)
-          .style("opacity", 0)
           .attr("xlink:href", d => {
-            let iconName = d.Software[0].Icon || 'ei-windows';
-            iconName = iconName.replace('ei-', '');
+            let iconName = d.Software[0].Icon || "ei-windows";
+            iconName = iconName.replace("ei-", "");
             return require(`../../assets/icons/svg/${iconName}.svg`);
           })
-          .transition()
-          .duration(config.duration)
-          .style("opacity", 1)
           .attr("x", (d, i) => {
-            d.cx = cx + getCenter(d, i, levelCircleInfo[level]).cx;
-            return d.cx - 20;
+            const links_count = data.links.filter(
+              link => d.id === link.node1 || d.id === link.node2
+            ).length;
+            d.r = config.nodeSize + links_count * config.nodeSizeStep;
+            d.cx = cx + getCenter(d.angle, distance).cx;
+            return d.cx - d.r;
           })
           .attr("y", (d, i) => {
-            d.cy = cy + getCenter(d, i, levelCircleInfo[level]).cy;
-            return d.cy - 20;
+            const links_count = data.links.filter(
+              link => d.id === link.node1 || d.id === link.node2
+            ).length;
+            d.r = config.nodeSize + links_count * config.nodeSizeStep;
+            d.cy = cy + getCenter(d.angle, distance).cy;
+            return d.cy - d.r;
           })
-          .attr("width", 40)
-          .attr("height", 40);
+          .attr("width", d => {
+            const links_count = data.links.filter(
+              link => d.id === link.node1 || d.id === link.node2
+            ).length;
+            d.r = config.nodeSize + links_count * config.nodeSizeStep;
+            return d.r * 2;
+          })
+          .attr("height", d => {
+            const links_count = data.links.filter(
+              link => d.id === link.node1 || d.id === link.node2
+            ).length;
+            d.r = config.nodeSize + links_count * config.nodeSizeStep;
+            return d.r * 2;
+          });
       }
-
-      nodes
+      nodesG
         .append("text")
         .attr("text-anchor", "middle")
-        .style("opacity", 0)
         .style("font-size", 11)
         .style("fill", config.nodeTextColor)
         .style("pointer-events", "none")
-        .attr("x", cx)
-        .attr("y", cy)
-        .raise()
-        .transition()
-        .duration(config.duration)
-        .style("opacity", 1)
-        .attr("x", d => d.cx)
-        .attr("y", d => d.cy - d.r - 5)
-        .text(d => d.name);
+        .attr("x", d => d.x)
+        .attr("y", d => d.y - d.r - 5)
+        .text(d => d.name)
+        .raise();
     }
 
     linksWrapper
-      .selectAll(".link")
+      .selectAll(".links")
       .data(data.links)
       .enter()
       .append("path")
-      .attr("class", d => `link link-${d.source.id}-${d.target.id}`)
-      .attr("d", `M${cx} ${cy}L${cx} ${cy}`)
-      .transition()
-      .duration(config.duration)
+      .attr("class", d => `links link-${d.source.id}-${d.target.id}`)
       .style("pointer-events", "none")
       .attr(
         "d",
-        d => `M${d.source.cx} ${d.source.cy}L${d.target.cx} ${d.target.cy}`
+        d => `M${d.source.x} ${d.source.y}L${d.target.x} ${d.target.y}`
       )
       .style("stroke", config.linkColor)
-      .attr("stroke-width", config.thickness * 0.5);
+      .attr("stroke-width", config.thickness * 0.5)
+      .style("opacity", d =>
+        d.source.Level === config.levelCircles.length - 1 ? 0.1 : 1
+      );
 
+    if (!extendedView) {
+      linksWrapper.selectAll(".links").each(function(d) {
+        if (d.source.Level === config.levelCircles.length - 1) {
+          d3.select(this).remove();
+        }
+      });
+    }
     nodesWrapper.raise();
+    
+    graph.on("mousemove", function() {
+      const m = d3.mouse(this);      
+      fisheye.focus(m);
+      lens.attr('cx', m[0]).attr('cy', m[1]);
+      nodesWrapper.selectAll(".node-groups")
+        .each(d => {          
+          d.fisheye = fisheye(d);
+        })
+        .select("circle")
+        .attr('cx', d => d.fisheye.x)
+        .attr('cy', d => d.fisheye.y)
+        .attr('r', d => d.r * d.fisheye.z)
+      nodesWrapper.selectAll(".node-groups")
+        .select("text")
+        .attr('x', d => d.fisheye.x)
+        .attr('y', d => d.fisheye.y - d.r * d.fisheye.z- 5)
+        // .style('font-size', d => d.fisheye.z * 12)
+      linksWrapper.selectAll(".links")
+        .attr('d', d => `M${d.source.fisheye.x} ${d.source.fisheye.y}L${d.target.fisheye.x} ${d.target.fisheye.y}`)        
+    });
 
     function nodeMouseOver(d) {
       tooltipContentRef.current = d;
@@ -292,17 +408,38 @@ export const Viewer = ({ data, width, height, config }) => {
       filteredPathArr[0] = [...new Set(filteredPathArr[0])];
       filteredPathArr[1] = [...new Set(filteredPathArr[1])];
       filteredPathArr[2] = [...new Set(filteredPathArr[2])];
-      // console.log(filteredPathArr, "paths");
+
       d3.select(this)
         .style("stroke", config.highlightColor)
         .attr("stroke-width", config.thickness);
+
+      const childNodes = data.links.filter(
+        link =>
+          link.target.id === d.id &&
+          link.source.Level === config.levelCircles.length - 1
+      );
+      if (childNodes) {
+        nodesWrapper.selectAll(".node-groups").style("opacity", p =>
+          childNodes
+            .map(k => k.source)
+            .map(e => e.id)
+            .includes(p.id)
+            ? 0.4
+            : "auto"
+        );
+      }
+
       data.links
         .filter(link => link.node1 === d.id || link.node2 === d.id)
         .forEach(link => {
           linksWrapper
-            .select(`.link-${link.node1}-${link.node2}`)
+            .select(`.link-${link.source.id}-${link.target.id}`)
             .style("stroke", config.linkHighlightColor)
             .attr("stroke-width", config.thickness * 3)
+            .style(
+              "opacity",
+              link.source.Level === config.levelCircles.length - 1 ? 0.4 : 1
+            )
             .raise();
         });
 
@@ -334,20 +471,54 @@ export const Viewer = ({ data, width, height, config }) => {
         setTooltipAnchorEl(null);
       }, config.duration);
       d3.select(this)
-        .style("stroke", config.levelCircles["Level" + d.Level].nodeStroke)
+        .style("stroke", config.levelCircles[d.Level].nodeStroke)
         .attr("stroke-width", config.thickness * 2);
+      const childNodes = data.links.filter(
+        link =>
+          link.target.id === d.id &&
+          link.source.Level === config.levelCircles.length - 1
+      );
+      if (childNodes) {
+        nodesWrapper.selectAll(".node-groups").style("opacity", p =>
+          childNodes
+            .map(k => k.source)
+            .map(e => e.id)
+            .includes(p.id)
+            ? 0.1
+            : "auto"
+        );
+      }
       linksWrapper.selectAll(".effect-line").remove();
       data.links
         .filter(link => link.node1 === d.id || link.node2 === d.id)
         .forEach(link => {
           linksWrapper
-            .select(`.link-${link.node1}-${link.node2}`)
+            .select(`.link-${link.source.id}-${link.target.id}`)
             .style("stroke", config.linkColor)
             .attr("stroke-width", config.thickness * 0.5)
+            .style(
+              "opacity",
+              link.source.Level === config.levelCircles.length - 1 ? 0.1 : 1
+            )
             .lower();
         });
     }
-  }, [data, config, width, height, showType]);
+    function getCenter(angle, distance) {
+      return {
+        cx: distance * Math.cos(angle * 2),
+        cy: distance * Math.sin(angle * 2)
+      };
+    }
+    function hasRing4Nodes(node) {
+      return (
+        data.links.filter(
+          link =>
+            link.target.id === node.id &&
+            link.source.Level === config.levelCircles.length - 1
+        ).length > 0
+      );
+    }
+  }, [data, config, width, height, showType, extendedView]);
   return (
     <>
       <div className={classes.svgContainer}>
@@ -359,25 +530,46 @@ export const Viewer = ({ data, width, height, config }) => {
         >
           <g className="graph" />
         </svg>
-        <Paper className={classes.ringInfo}>
-          <Typography>Ring 1: {data.nodes.filter(d => d.Level === 1).length}</Typography>
-          <Typography>Ring 2: {data.nodes.filter(d => d.Level === 2).length}</Typography>
-          <Typography>Ring 3: {data.nodes.filter(d => d.Level === 3).length}</Typography>
+        <Paper className={classes.toggleContainer}>
+          <ToggleButtonGroup
+            value={showType}
+            exclusive
+            onChange={(evt, val) => {
+              clearTimeout(timeoutRef.current);
+              setTooltipOpen(false);
+              setShowType(val);
+            }}
+          >
+            <ToggleButton value="circle">
+              <FiberManualRecordIcon />
+            </ToggleButton>
+            <ToggleButton value="icon">
+              <ImageIcon />
+            </ToggleButton>
+          </ToggleButtonGroup>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={extendedView}
+                onChange={() => setExtendedView(!extendedView)}
+                color="primary"
+              />
+            }
+            label="ExtendedView"
+            labelPlacement="top"
+          />
         </Paper>
-      </div>
-      <div className={classes.toggleContainer}>
-        <ToggleButtonGroup
-          value={showType}
-          exclusive
-          onChange={(evt, val) =>setShowType(val)}
-        >
-          <ToggleButton value="circle">
-            <FiberManualRecordIcon />
-          </ToggleButton>
-          <ToggleButton value="icon">
-            <ImageIcon />
-          </ToggleButton>
-        </ToggleButtonGroup>
+        <Paper className={classes.ringInfo}>
+          <Typography>
+            Ring 1: {data.nodes.filter(d => d.Level === 1).length}
+          </Typography>
+          <Typography>
+            Ring 2: {data.nodes.filter(d => d.Level === 2).length}
+          </Typography>
+          <Typography>
+            Ring 3: {data.nodes.filter(d => d.Level === 3).length}
+          </Typography>
+        </Paper>
       </div>
       <Popper
         open={tooltipOpen}

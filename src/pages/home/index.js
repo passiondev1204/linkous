@@ -3,7 +3,7 @@ import { Viewer } from "../../components/Viewer";
 import { PackingViewer } from "../../components/PackingViewer";
 import global from "../../global";
 import data from "../../data/sample_expanded.json";
-import data2 from "../../data/nightingale_w_icons.json";
+import data2 from "../../data/nightingale_w4_icons.json";
 
 function HomePage() {
   return (
@@ -13,7 +13,7 @@ function HomePage() {
         width: "100%",
         height: "100%",
         display: "flex",
-        justifyContent: 'center'
+        justifyContent: "center"
       }}
     >
       {/* <PackingViewer
@@ -68,45 +68,49 @@ function HomePage() {
         width={1600}
         height={900}
         config={{
-          duration: 1000,
+          duration: 600,
           nodeSize: 10,
           thickness: 3,
           linkColor: "#888",
           highlightColor: "white",
           linkHighlightColor: "#888",
           linkEffectColor: "white",
-          nodeSizeStep: 2,
+          nodeSizeStep: 1,
           backgroundColor: "#131f26",
-          nodeTextColor: 'white',
-          baseRadius: 60,
-          offsetRadius: 100,
-          levelCounts: 4,
-          levelCircles: {
-            Level0: {
+          nodeTextColor: "white",
+          baseRadius: 15,
+          levelCircles: [
+            {
               fill: global.color.MEDIUM.light,
               nodeColor: global.color.MEDIUM.main,
               nodeStroke: global.color.MEDIUM.light,
-              stroke: global.color.MEDIUM.main,
+              stroke: global.color.MEDIUM.main
             },
-            Level1: {
+            {
               fill: global.color.CRITICAL.light,
               nodeColor: global.color.CRITICAL.main,
               nodeStroke: global.color.CRITICAL.light,
-              stroke: global.color.CRITICAL.main,
+              stroke: global.color.CRITICAL.main
             },
-            Level2: {
+            {
               fill: global.color.HIGH.light,
               nodeColor: global.color.HIGH.main,
               nodeStroke: global.color.HIGH.light,
-              stroke: global.color.HIGH.main,
+              stroke: global.color.HIGH.main
             },
-            Level3: {
+            {
               fill: global.color.LOW.light,
               nodeColor: global.color.LOW.main,
               nodeStroke: global.color.LOW.light,
-              stroke: global.color.LOW.main,
+              stroke: global.color.LOW.main
+            },
+            {
+              fill: 'transparent',
+              nodeColor: "rgb(255, 0, 255)",
+              nodeStroke: "rgb(255, 0, 255, 0.5)",
+              stroke: 'none',
             }
-          }
+          ]
         }}
       />
     </div>
