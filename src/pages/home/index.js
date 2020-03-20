@@ -79,6 +79,10 @@ function HomePage() {
           backgroundColor: "#131f26",
           nodeTextColor: "white",
           baseRadius: 15,
+          levelCounts: 5,
+          ring4DefaultOpacity: 0.1,
+          ring4HoverOpacity: 0.5,
+          defaultFontSize: 12,
           levelCircles: [
             {
               fill: global.color.MEDIUM.light,
