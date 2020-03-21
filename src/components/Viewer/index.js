@@ -201,7 +201,8 @@ export const Viewer = ({ data, width, height, config }) => {
           linksRef.current,
           i,
           config,
-          showType
+          showType,
+          theme
         );
       }
       nodesWrapper
@@ -222,9 +223,10 @@ export const Viewer = ({ data, width, height, config }) => {
         linksRef.current,
         config,
         levelInfos.current,
-        showType
+        showType, 
+        theme
       );
-      reLinking(linksWrapper, config);
+      reLinking(linksWrapper, config, theme);
     } else {
       nodesWrapper.selectAll(`.nodes-${config.levelCounts - 1}`).remove();
       linksWrapper.selectAll(".links").each(function(d) {
@@ -286,9 +288,10 @@ export const Viewer = ({ data, width, height, config }) => {
         config,
         levelInfos.current,
         showType,
+        theme,
         d
       );
-      reLinking(linksWrapper, config);
+      reLinking(linksWrapper, config, theme);
     }
     function nodeMouseOver(d) {
       tooltipContentRef.current = d;
@@ -303,7 +306,7 @@ export const Viewer = ({ data, width, height, config }) => {
       const childNodes = linksRef.current.filter(
         link =>
           link.target.id === d.id &&
-          link.source.Level === config.levelCircles.length - 1
+          link.source.Level === config.levelCounts - 1
       );
       if (childNodes) {
         nodesWrapper.selectAll(".nodes").style("opacity", p =>
@@ -364,7 +367,7 @@ export const Viewer = ({ data, width, height, config }) => {
       const childNodes = linksRef.current.filter(
         link =>
           link.target.id === d.id &&
-          link.source.Level === config.levelCircles.length - 1
+          link.source.Level === config.levelCounts - 1
       );
       if (childNodes) {
         nodesWrapper.selectAll(".nodes").style("opacity", p =>
@@ -386,7 +389,7 @@ export const Viewer = ({ data, width, height, config }) => {
             .attr("stroke-width", config.thickness * 0.5)
             .style(
               "opacity",
-              link.source.Level === config.levelCircles.length - 1 ? 0.1 : 1
+              link.source.Level === config.levelCounts - 1 ? 0.1 : 1
             )
             .lower();
         });
