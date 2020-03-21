@@ -89,10 +89,12 @@ export const Viewer = ({ data, width, height, config }) => {
   const timeoutRef = React.useRef();
   const tooltipContentRef = React.useRef();
   const levelInfos = React.useRef([]);
+  const nodesRef = React.useRef(null);
+  const linksRef = React.useRef(null);
 
   const [tooltipAnchorEl, setTooltipAnchorEl] = React.useState(null);
   const [tooltipOpen, setTooltipOpen] = React.useState(false);
-  const [darkMode, setDarkMode] = React.useState(true);
+  const [theme, setTheme] = React.useState("dark");
   const [showType, setShowType] = React.useState("circle");
   const [extendedView, setExtendedView] = React.useState(true);
   const [magnifyMode, setMagnifyMode] = React.useState(false);
@@ -119,12 +121,13 @@ export const Viewer = ({ data, width, height, config }) => {
       })
     );
     const graph = d3.select(".graph");
+    graph.selectAll("*").remove();
     // magnifier as circle
     graph
       .append("circle")
       .attr("class", "lens")
       .style("fill", "transparent")
-      .style("stroke", "grey")
+      .style("stroke", config.lensBorderColor)
       .style("stroke-width", 3)
       .attr("cx", base_cx)
       .attr("cy", base_cy)
@@ -137,7 +140,7 @@ export const Viewer = ({ data, width, height, config }) => {
     let maxNodesOfLevel = maxCountsOfLevel(data.nodes);
     circleWrapper
       .selectAll("circle")
-      .data(config.levelCircles)
+      .data(config[theme].levelCircles)
       .enter()
       .append("circle")
       .attr("cx", base_cx)
@@ -155,8 +158,8 @@ export const Viewer = ({ data, width, height, config }) => {
       .style("opacity", 0.5)
       .lower();
 
-    let nodes = data.nodes,
-      links = getLinks(data.nodes, data.links);
+    nodesRef.current = data.nodes;
+    linksRef.current = getLinks(data.nodes, data.links);
 
     // nodesWrapper.selectAll("g").remove();
     for (let i = 0; i < config.levelCounts - 1; i++) {
@@ -165,26 +168,21 @@ export const Viewer = ({ data, width, height, config }) => {
         base_cx,
         base_cy,
         levelInfos.current[i].distance,
-        nodes.filter(node => node.Level === i),
-        links,
+        nodesRef.current.filter(node => node.Level === i),
+        linksRef.current,
         i,
         config
       );
     }
-    nodesGroupingRing4(nodesWrapper, nodes, links, config, levelInfos.current);
-    linking(linksWrapper, links, config);
-  }, [width, height, config, data]);
+    nodesGroupingRing4(nodesWrapper, nodesRef.current, linksRef.current, config, levelInfos.current);
+    linking(linksWrapper, linksRef.current, config);
+  }, [width, height, config, theme, data]);
 
   React.useEffect(() => {
     const graph = d3.select(".graph");
-
-    let maxNodesOfLevel = maxCountsOfLevel(data.nodes);
     let ring4Level = config.levelCounts - 1;
     const base_cx = width / 2,
       base_cy = height / 2;
-
-    let nodes = data.nodes,
-      links = getLinks(data.nodes, data.links);
 
     const nodesWrapper = graph.select(".nodes-wrapper");
     const linksWrapper = graph.select(".links-wrapper");
@@ -199,8 +197,8 @@ export const Viewer = ({ data, width, height, config }) => {
           base_cx,
           base_cy,
           levelInfos.current[i].distance,
-          nodes.filter(node => node.Level === i),
-          links,
+          nodesRef.current.filter(node => node.Level === i),
+          linksRef.current,
           i,
           config,
           showType
@@ -220,8 +218,8 @@ export const Viewer = ({ data, width, height, config }) => {
         .on("mouseout", nodeMouseOut);
       nodesGroupingRing4(
         nodesWrapper,
-        nodes,
-        links,
+        nodesRef.current,
+        linksRef.current,
         config,
         levelInfos.current,
         showType
@@ -283,8 +281,8 @@ export const Viewer = ({ data, width, height, config }) => {
       if (!d.hasRing4 || !extendedView) return;
       nodesGroupingRing4(
         nodesWrapper,
-        nodes,
-        links,
+        nodesRef.current,
+        linksRef.current,
         config,
         levelInfos.current,
         showType,
@@ -299,10 +297,10 @@ export const Viewer = ({ data, width, height, config }) => {
       setTooltipOpen(true);
 
       d3.select(this)
-        .style("stroke", config.highlightColor)
-        .attr("stroke-width", config.thickness);
+        .style("stroke", config[theme].highlightColor)
+        .attr("stroke-width", config[theme].thickness);
 
-      const childNodes = links.filter(
+      const childNodes = linksRef.current.filter(
         link =>
           link.target.id === d.id &&
           link.source.Level === config.levelCircles.length - 1
@@ -318,12 +316,12 @@ export const Viewer = ({ data, width, height, config }) => {
         );
       }
 
-      links
+      linksRef.current
         .filter(link => link.node1 === d.id || link.node2 === d.id)
         .forEach(link => {
           linksWrapper
             .select(`.link-${link.source.id}-${link.target.id}`)
-            .style("stroke", config.linkHighlightColor)
+            .style("stroke", config[theme].linkHighlightColor)
             .attr("stroke-width", config.thickness * 3)
             .style(
               "opacity",
@@ -332,7 +330,7 @@ export const Viewer = ({ data, width, height, config }) => {
             .raise();
         });
       if (magnifyMode) return;
-      let filteredPathArr = centeringPaths(d, config.levelCounts, links);
+      let filteredPathArr = centeringPaths(d, config.levelCounts, linksRef.current);
       filteredPathArr.forEach((fpaths, i) => {
         linksWrapper
           .selectAll(`.level${i}-paths`)
@@ -340,7 +338,7 @@ export const Viewer = ({ data, width, height, config }) => {
           .enter()
           .append("path")
           .attr("class", `effect-line level${i}-paths`)
-          .style("stroke", config.linkEffectColor)
+          .style("stroke", config[theme].linkEffectColor)
           .style("stroke-width", config.thickness)
           .attr(
             "d",
@@ -361,9 +359,9 @@ export const Viewer = ({ data, width, height, config }) => {
         setTooltipAnchorEl(null);
       }, config.duration);
       d3.select(this)
-        .style("stroke", config.levelCircles[d.Level].nodeStroke)
+        .style("stroke", config[theme].levelCircles[d.Level].nodeStroke)
         .attr("stroke-width", config.thickness * 2);
-      const childNodes = links.filter(
+      const childNodes = linksRef.current.filter(
         link =>
           link.target.id === d.id &&
           link.source.Level === config.levelCircles.length - 1
@@ -379,12 +377,12 @@ export const Viewer = ({ data, width, height, config }) => {
         );
       }
       linksWrapper.selectAll(".effect-line").remove();
-      links
+      linksRef.current
         .filter(link => link.node1 === d.id || link.node2 === d.id)
         .forEach(link => {
           linksWrapper
             .select(`.link-${link.source.id}-${link.target.id}`)
-            .style("stroke", config.linkColor)
+            .style("stroke", config[theme].linkColor)
             .attr("stroke-width", config.thickness * 0.5)
             .style(
               "opacity",
@@ -393,7 +391,8 @@ export const Viewer = ({ data, width, height, config }) => {
             .lower();
         });
     }
-  }, [data, config, width, height, showType, extendedView, magnifyMode]);
+    console.log(nodesRef.current.filter(d => d.Level === 4), 'ABCDEF')
+  }, [config, width, height, showType, theme, extendedView, magnifyMode]);
   return (
     <>
       <div className={classes.svgContainer} onContextMenu={onContextMenu}>
@@ -401,7 +400,7 @@ export const Viewer = ({ data, width, height, config }) => {
           ref={svgRef}
           width={width}
           height={height}
-          style={{ backgroundColor: config.backgroundColor }}
+          style={{ backgroundColor: config[theme].backgroundColor }}
         >
           <g className="graph" />
         </svg>
@@ -425,12 +424,12 @@ export const Viewer = ({ data, width, height, config }) => {
           <FormControlLabel
             control={
               <Switch
-                checked={darkMode}
-                onChange={() => setDarkMode(!darkMode)}
+                checked={theme === "dark" ? true : false }
+                onChange={evt => setTheme(evt.target.checked ? "dark" : "white")}
                 color="primary"
               />
             }
-            label={darkMode ? "Dark" : "White"}
+            label={theme === "dark" ? "Dark" : "White"}
             labelPlacement="top"
           />
           <FormControlLabel

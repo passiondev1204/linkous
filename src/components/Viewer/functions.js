@@ -156,6 +156,7 @@ export const nodeGrouping = (
   levelNo,
   config,
   showType = "circle",
+  theme = "dark",
   patterned = false
 ) => {
   const ring4Level = config.levelCounts - 1;
@@ -166,7 +167,7 @@ export const nodeGrouping = (
     .append("g")
     .attr("class", d => {
       d.hasRing4 = hasRing4Nodes(d, links);
-      d.isRing4 = d.Level === config.levelCircles.length - 1 ? true : false;
+      d.isRing4 = d.Level === config[theme].levelCircles.length - 1 ? true : false;
       return `nodes nodes-${levelNo} ind-node-${d.id} ${
         d.hasRing4 ? "has-ring4-" + d.id : ""
       } ${d.isRing4 ? "ring4-node" : ""}`;
@@ -177,9 +178,9 @@ export const nodeGrouping = (
     if(showType === 'circle'){
       nodesG
         .append("circle")
-        .attr("fill", config.levelCircles[levelNo].nodeColor)
+        .attr("fill", config[theme].levelCircles[levelNo].nodeColor)
         .attr("stroke-width", config.thickness * 2)
-        .attr("stroke", config.levelCircles[levelNo].nodeStroke)
+        .attr("stroke", config[theme].levelCircles[levelNo].nodeStroke)
         .style("cursor", "pointer")
         // .style("opacity", showType === "circle" ? 1 : 0)
         .attr("r", d => {
@@ -278,7 +279,7 @@ export const nodeGrouping = (
     .attr("text-anchor", "middle")
     .attr("alignment-baseline", "ideographic")
     .style("font-size", d => (d.fs = config.defaultFontSize))
-    .style("fill", config.nodeTextColor)
+    .style("fill", config[theme].nodeTextColor)
     .style("pointer-events", "none")
     .attr("x", d => d.x)
     .attr("y", d => d.y - d.r - 5)
@@ -295,6 +296,7 @@ export const nodesGroupingRing4 = (
   config,
   levelInfo,
   showType = "circle",
+  theme = "dark",
   clickedNode = null
 ) => {
   const ring4Level = config.levelCounts - 1;
@@ -328,12 +330,13 @@ export const nodesGroupingRing4 = (
       ring4Level,
       config,
       showType,
+      theme, 
       true
     );
   });
 };
 
-export const linking = (wrapper, links, config) => {
+export const linking = (wrapper, links, config, theme = "dark") => {
   const ring4Level = config.levelCounts - 1;
   wrapper
     .selectAll(".links")
@@ -343,21 +346,21 @@ export const linking = (wrapper, links, config) => {
     .attr("class", d => `links link-${d.source.id}-${d.target.id}`)
     .style("pointer-events", "none")
     .attr("d", d => `M${d.source.x} ${d.source.y}L${d.target.x} ${d.target.y}`)
-    .style("stroke", config.linkColor)
+    .style("stroke", config[theme].linkColor)
     .attr("stroke-width", config.thickness * 0.5)
     .style("opacity", d =>
       d.source.Level === ring4Level ? config.ring4DefaultOpacity : 1
     );
 };
 
-export const reLinking = (wrapper, config) => {
+export const reLinking = (wrapper, config, theme = "dark") => {
   const ring4Level = config.levelCounts - 1;
   wrapper
     .selectAll(".links")
     .attr("class", d => `links link-${d.source.id}-${d.target.id}`)
     .style("pointer-events", "none")
     .attr("d", d => `M${d.source.x} ${d.source.y}L${d.target.x} ${d.target.y}`)
-    .style("stroke", config.linkColor)
+    .style("stroke", config[theme].linkColor)
     .attr("stroke-width", config.thickness * 0.5)
     .style("opacity", d =>
       d.source.Level === ring4Level ? config.ring4DefaultOpacity : 1
