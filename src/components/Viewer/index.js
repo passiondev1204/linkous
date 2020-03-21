@@ -155,7 +155,7 @@ export const Viewer = ({ data, width, height, config }) => {
       .attr("fill", d => d.fill)
       .attr("stroke", d => d.stroke)
       .attr("stroke-width", config.thickness)
-      .style("opacity", 0.5)
+      .style("opacity", config[theme].fillOpacity)
       .lower();
 
     nodesRef.current = data.nodes;
