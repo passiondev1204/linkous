@@ -254,7 +254,7 @@ export const Viewer = ({ data, width, height, config }) => {
           linksWrapper
             .select(`.link-${link.source.id}-${link.target.id}`)
             .style("stroke", config[theme].linkHighlightColor)
-            .attr("stroke-width", config.lineThickness)
+            .attr("stroke-width", config.lineThickness * 2)
             .style(
               "opacity",
               link.source.Level === ring4Level ? config.ring4HoverOpacity : 1
@@ -262,10 +262,10 @@ export const Viewer = ({ data, width, height, config }) => {
         });
     }
     function nodeMouseOver(d) {
-      // tooltipContentRef.current = d;
-      // clearTimeout(timeoutRef.current);
-      // setTooltipAnchorEl(d3.event.currentTarget);
-      // setTooltipOpen(true);
+      tooltipContentRef.current = d;
+      clearTimeout(timeoutRef.current);
+      setTooltipAnchorEl(d3.event.currentTarget);
+      setTooltipOpen(true);
 
       d3.select(this)
         .select("circle")
@@ -311,10 +311,10 @@ export const Viewer = ({ data, width, height, config }) => {
       });
     }
     function nodeMouseOut(d) {
-      // timeoutRef.current = setTimeout(() => {
-      //   setTooltipOpen(false);
-      //   setTooltipAnchorEl(null);
-      // }, config.duration);
+      timeoutRef.current = setTimeout(() => {
+        setTooltipOpen(false);
+        setTooltipAnchorEl(null);
+      }, config.duration);
       d3.select(this)
         .select("circle")
         .style("stroke", config[theme].levelCircles[d.Level].nodeStroke)
