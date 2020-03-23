@@ -31,10 +31,12 @@ import {
   nodesHasRing4,
   hasRing4Nodes,
   center,
-  nodeGrouping,
-  linking,
+  addNodes,
+  addLinks,
+  updateNodes,
+  updateLinks,
   nodeReGrouping,
-  nodesGroupingRing4
+  addNodesOfRing4
 } from "./functions";
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -160,10 +162,9 @@ export const Viewer = ({ data, width, height, config }) => {
 
     nodesRef.current = data.nodes;
     linksRef.current = getLinks(data.nodes, data.links);
-
-    // nodesWrapper.selectAll("g").remove();
+    
     for (let i = 0; i < config.levelCounts - 1; i++) {
-      nodeGrouping(
+      addNodes(
         nodesWrapper,
         base_cx,
         base_cy,
@@ -174,114 +175,117 @@ export const Viewer = ({ data, width, height, config }) => {
         config
       );
     }
-    nodesGroupingRing4(nodesWrapper, nodesRef.current, linksRef.current, config, levelInfos.current);
-    linking(linksWrapper, linksRef.current, config);
-  }, [width, height, config, theme, data]);
+    addNodesOfRing4(nodesWrapper, nodesRef.current, linksRef.current, config, levelInfos.current);
+    addLinks(linksWrapper, linksRef.current, config);
+    console.log('effect 1')
+  }, []);
 
   React.useEffect(() => {
+    console.log('effect 2')
+    console.log(nodesRef.current.filter(d => d.id === 33), 'chagenn');
+    const ring4Level = config.levelCounts - 1;
     const graph = d3.select(".graph");
-    let ring4Level = config.levelCounts - 1;
-    const base_cx = width / 2,
-      base_cy = height / 2;
 
     const nodesWrapper = graph.select(".nodes-wrapper");
     const linksWrapper = graph.select(".links-wrapper");
+    
+    updateNodes(nodesWrapper, nodesRef.current, linksRef.current, config, levelInfos.current, showType, theme);
+    updateLinks(linksWrapper, config, theme);
+    graph.select(".lens").style("opacity", magnifyMode ? 1 : 0);
+    nodesWrapper
+      .selectAll(".nodes")
+      .on("click", nodeClick)
+      .on("mouseover", nodeMouseOver)
+      .on("mouseout", nodeMouseOut);
 
-    const lens = graph.select(".lens").style("opacity", magnifyMode ? 1 : 0);
+    // if (extendedView) {
+    //   // nodesWrapper.selectAll("*").remove();
+    //   // for (let i = 0; i < config.levelCounts - 1; i++) {
+    //   //   nodeGrouping(
+    //   //     nodesWrapper,
+    //   //     base_cx,
+    //   //     base_cy,
+    //   //     levelInfos.current[i].distance,
+    //   //     nodesRef.current.filter(node => node.Level === i),
+    //   //     linksRef.current,
+    //   //     i,
+    //   //     config,
+    //   //     showType,
+    //   //     theme
+    //   //   );
+    //   // }
+      
+    //   nodesWrapper
+    //     .selectAll(".nodes")
+    //     .select("image")
+    //     .on("click", nodeClick)
+    //     .on("mouseover", nodeMouseOver)
+    //     .on("mouseout", nodeMouseOut);
+    //   // nodesGroupingRing4(
+    //   //   nodesWrapper,
+    //   //   nodesRef.current,
+    //   //   linksRef.current,
+    //   //   config,
+    //   //   levelInfos.current,
+    //   //   showType, 
+    //   //   theme
+    //   // );
+    //   reLinking(linksWrapper, config, theme);
+    // } else {
+    //   nodesWrapper.selectAll(`.nodes-${config.levelCounts - 1}`).remove();
+    //   linksWrapper.selectAll(".links").each(function(d) {
+    //     if (d.source.Level === config.levelCounts - 1) {
+    //       d3.select(this).style("opacity", 0);
+    //     }
+    //   });
+    // }
 
-    if (extendedView) {
-      nodesWrapper.selectAll("*").remove();
-      for (let i = 0; i < config.levelCounts - 1; i++) {
-        nodeGrouping(
-          nodesWrapper,
-          base_cx,
-          base_cy,
-          levelInfos.current[i].distance,
-          nodesRef.current.filter(node => node.Level === i),
-          linksRef.current,
-          i,
-          config,
-          showType,
-          theme
-        );
-      }
-      nodesWrapper
-        .selectAll(".nodes")
-        .select("circle")
-        .on("click", nodeClick)
-        .on("mouseover", nodeMouseOver)
-        .on("mouseout", nodeMouseOut);
-      nodesWrapper
-        .selectAll(".nodes")
-        .select("image")
-        .on("click", nodeClick)
-        .on("mouseover", nodeMouseOver)
-        .on("mouseout", nodeMouseOut);
-      nodesGroupingRing4(
-        nodesWrapper,
-        nodesRef.current,
-        linksRef.current,
-        config,
-        levelInfos.current,
-        showType, 
-        theme
-      );
-      reLinking(linksWrapper, config, theme);
-    } else {
-      nodesWrapper.selectAll(`.nodes-${config.levelCounts - 1}`).remove();
-      linksWrapper.selectAll(".links").each(function(d) {
-        if (d.source.Level === config.levelCounts - 1) {
-          d3.select(this).style("opacity", 0);
-        }
-      });
-    }
-
-    graph.on("mousemove", function() {
-      if (!magnifyMode) return;
-      const m = d3.mouse(this);
-      fisheye.focus(m);
-      lens.attr("cx", m[0]).attr("cy", m[1]);
-      if (showType === "circle") {
-        nodesWrapper
-          .selectAll(".nodes")
-          .each(d => {
-            d.fisheye = fisheye(d);
-          })
-          .select("circle")
-          .attr("cx", d => d.fisheye.x)
-          .attr("cy", d => d.fisheye.y)
-          .attr("r", d => d.r * d.fisheye.z * 0.8);
-      } else {
-        nodesWrapper
-          .selectAll(".nodes")
-          .each(d => {
-            d.fisheye = fisheye(d);
-          })
-          .select("image")
-          .attr("x", d => d.fisheye.x - d.r * d.fisheye.z * 0.8)
-          .attr("y", d => d.fisheye.y - d.r * d.fisheye.z * 0.8)
-          .attr("width", d => d.r * 2 * d.fisheye.z)
-          .attr("height", d => d.r * 2 * d.fisheye.z);
-      }
-      nodesWrapper
-        .selectAll(".nodes")
-        .select("text")
-        .attr("x", d => d.fisheye.x)
-        .attr("y", d => d.fisheye.y - d.r * d.fisheye.z - 5)
-        .attr("font-size", d => d.fisheye.z * d.fs)
-        .style("font-size", d => d.fisheye.z * d.fs);
-      linksWrapper
-        .selectAll(".links")
-        .attr(
-          "d",
-          d =>
-            `M${d.source.fisheye.x} ${d.source.fisheye.y}L${d.target.fisheye.x} ${d.target.fisheye.y}`
-        );
-    });
+    // graph.on("mousemove", function() {
+    //   if (!magnifyMode) return;
+    //   const m = d3.mouse(this);
+    //   fisheye.focus(m);
+    //   lens.attr("cx", m[0]).attr("cy", m[1]);
+    //   if (showType === "circle") {
+    //     nodesWrapper
+    //       .selectAll(".nodes")
+    //       .each(d => {
+    //         d.fisheye = fisheye(d);
+    //       })
+    //       .select("circle")
+    //       .attr("cx", d => d.fisheye.x)
+    //       .attr("cy", d => d.fisheye.y)
+    //       .attr("r", d => d.r * d.fisheye.z * 0.8);
+    //   } else {
+    //     nodesWrapper
+    //       .selectAll(".nodes")
+    //       .each(d => {
+    //         d.fisheye = fisheye(d);
+    //       })
+    //       .select("image")
+    //       .attr("x", d => d.fisheye.x - d.r * d.fisheye.z * 0.8)
+    //       .attr("y", d => d.fisheye.y - d.r * d.fisheye.z * 0.8)
+    //       .attr("width", d => d.r * 2 * d.fisheye.z)
+    //       .attr("height", d => d.r * 2 * d.fisheye.z);
+    //   }
+    //   nodesWrapper
+    //     .selectAll(".nodes")
+    //     .select("text")
+    //     .attr("x", d => d.fisheye.x)
+    //     .attr("y", d => d.fisheye.y - d.r * d.fisheye.z - 5)
+    //     .attr("font-size", d => d.fisheye.z * d.fs)
+    //     .style("font-size", d => d.fisheye.z * d.fs);
+    //   linksWrapper
+    //     .selectAll(".links")
+    //     .attr(
+    //       "d",
+    //       d =>
+    //         `M${d.source.fisheye.x} ${d.source.fisheye.y}L${d.target.fisheye.x} ${d.target.fisheye.y}`
+    //     );
+    // });
 
     function nodeClick(d) {
-      if (!d.hasRing4 || !extendedView) return;
-      nodesGroupingRing4(
+      if (!d.hasRing4) return;
+      updateNodes(
         nodesWrapper,
         nodesRef.current,
         linksRef.current,
@@ -291,7 +295,8 @@ export const Viewer = ({ data, width, height, config }) => {
         theme,
         d
       );
-      reLinking(linksWrapper, config, theme);
+      updateLinks(linksWrapper, config, theme);
+      console.log(nodesRef.current.filter(d => d.id === 33), 'chagenn when click');
     }
     function nodeMouseOver(d) {
       tooltipContentRef.current = d;
@@ -299,7 +304,7 @@ export const Viewer = ({ data, width, height, config }) => {
       setTooltipAnchorEl(d3.event.currentTarget);
       setTooltipOpen(true);
 
-      d3.select(this)
+      d3.select(this).select("circle")
         .style("stroke", config[theme].highlightColor)
         .attr("stroke-width", config[theme].thickness);
 
@@ -345,14 +350,14 @@ export const Viewer = ({ data, width, height, config }) => {
           .style("stroke-width", config.thickness)
           .attr(
             "d",
-            d => `M${d.source.cx} ${d.source.cy}L ${d.source.cx} ${d.source.cy}`
+            d => `M${d.source.x} ${d.source.y}L ${d.source.x} ${d.source.y}`
           )
           .transition()
           .delay(config.duration * i)
           .duration(config.duration)
           .attr(
             "d",
-            d => `M${d.source.cx} ${d.source.cy}L ${d.target.cx} ${d.target.cy}`
+            d => `M${d.source.x} ${d.source.y}L ${d.target.x} ${d.target.y}`
           );
       });
     }
@@ -361,7 +366,7 @@ export const Viewer = ({ data, width, height, config }) => {
         setTooltipOpen(false);
         setTooltipAnchorEl(null);
       }, config.duration);
-      d3.select(this)
+      d3.select(this).select("circle")
         .style("stroke", config[theme].levelCircles[d.Level].nodeStroke)
         .attr("stroke-width", config.thickness * 2);
       const childNodes = linksRef.current.filter(
@@ -394,7 +399,6 @@ export const Viewer = ({ data, width, height, config }) => {
             .lower();
         });
     }
-    console.log(nodesRef.current.filter(d => d.Level === 4), 'ABCDEF')
   }, [config, width, height, showType, theme, extendedView, magnifyMode]);
   return (
     <>

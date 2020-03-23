@@ -146,7 +146,7 @@ export const hasRing4Nodes = (node, links, level4 = 4) =>
 export const nodesHasRing4 = (nodes, links) =>
   nodes.filter(node => hasRing4Nodes(node, links));
 
-export const nodeGrouping = (
+export const addNodes = (
   wrapper,
   cx,
   cy,
@@ -157,7 +157,7 @@ export const nodeGrouping = (
   config,
   showType = "circle",
   theme = "dark",
-  patterned = false
+  parentId = null
 ) => {
   const ring4Level = config.levelCounts - 1;
   const nodesG = wrapper
@@ -165,115 +165,55 @@ export const nodeGrouping = (
     .data(nodes)
     .enter()
     .append("g")
-    .attr("class", d => {
-      d.hasRing4 = hasRing4Nodes(d, links);
-      d.isRing4 = d.Level === config[theme].levelCircles.length - 1 ? true : false;
-      return `nodes nodes-${levelNo} ind-node-${d.id} ${
-        d.hasRing4 ? "has-ring4-" + d.id : ""
-      } ${d.isRing4 ? "ring4-node" : ""}`;
-    })
+    .attr(
+      "class",
+      d => {
+        d.hasRing4 = hasRing4Nodes(d, links);
+        return `nodes ${
+          config[theme].levelCircles.length - 1 === d.Level
+            ? `pnode-${parentId}`
+            : ""
+        }`
+      })
     .style("opacity", d =>
       d.Level === ring4Level ? config.ring4DefaultOpacity : 1
-    );
-    if(showType === 'circle'){
-      nodesG
-        .append("circle")
-        .attr("fill", config[theme].levelCircles[levelNo].nodeColor)
-        .attr("stroke-width", config.thickness * 2)
-        .attr("stroke", config[theme].levelCircles[levelNo].nodeStroke)
-        .style("cursor", "pointer")
-        // .style("opacity", showType === "circle" ? 1 : 0)
-        .attr("r", d => {
-          const links_count = links.filter(
-            link => d.id === link.node1 || d.id === link.node2
-          ).length;
-          d.r = config.nodeSize + links_count * config.nodeSizeStep;
-          return d.r;
-        })
-        .attr("cx", (d, i) => {
-          d.angle = (i / nodes.length) * Math.PI;
-          let adjustedDistance = distance;
-          if (patterned) {
-            adjustedDistance = utils.pattern_distance(
-              nodes.length,
-              i + 1,
-              distance
-            );
-          }
-          d.cx = cx + center(d.angle, adjustedDistance).cx;
-          d.x = d.cx;
-          return d.cx;
-        })
-        .attr("cy", (d, i) => {
-          let adjustedDistance = distance;
-          if (patterned) {
-            adjustedDistance = utils.pattern_distance(
-              nodes.length,
-              i + 1,
-              distance
-            );
-          }
-          d.cy = cy + center(d.angle, adjustedDistance).cy;
-          d.y = d.cy;
-          return d.cy;
-        });
-    } else {
-      nodesG
-        .append("svg:image")
-        .style("cursor", "pointer")
-        .attr("xlink:href", d => {
-          let iconName = d.Software[0].Icon || "ei-windows";
-          iconName = iconName.replace("ei-", "");
-          return require(`../../assets/icons/svg/${iconName}.svg`);
-        })
-        // .style("opacity", showType === "icon" ? 1 : 0)
-        .attr("x", (d, i) => {
-          const links_count = links.filter(
-            link => d.id === link.node1 || d.id === link.node2
-          ).length;
-          d.r = config.nodeSize + links_count * config.nodeSizeStep;
-          d.angle = (i / nodes.length) * Math.PI;
-          let adjustedDistance = distance;
-          if (patterned) {
-            adjustedDistance = utils.pattern_distance(
-              nodes.length,
-              i + 1,
-              distance
-            );
-          }
-          d.cx = cx + center(d.angle, adjustedDistance).cx;
-          d.x = d.cx;
-          return d.cx - d.r;
-        })
-        .attr("y", (d, i) => {
-          d.angle = (i / nodes.length) * Math.PI;
-          let adjustedDistance = distance;
-          if (patterned) {
-            adjustedDistance = utils.pattern_distance(
-              nodes.length,
-              i + 1,
-              distance
-            );
-          }
-          d.cy = cy + center(d.angle, adjustedDistance).cy;
-          d.y = d.cy;
-          return d.cy - d.r;
-        })
-        .attr("width", d => {
-          const links_count = links.filter(
-            link => d.id === link.node1 || d.id === link.node2
-          ).length;
-          d.r = config.nodeSize + links_count * config.nodeSizeStep;
-          return d.r * 2;
-        })
-        .attr("height", d => {
-          const links_count = links.filter(
-            link => d.id === link.node1 || d.id === link.node2
-          ).length;
-          d.r = config.nodeSize + links_count * config.nodeSizeStep;
-          return d.r * 2;
-        });
-    }
+    )
+    .attr("transform", (d, i) => {
+      d.angle = (i / nodes.length) * Math.PI;
+      let adjustedDistance = utils.pattern_distance(
+        nodes.length,
+        i + 1,
+        distance
+      );
+      d.x = cx + center(d.angle, adjustedDistance).cx;
+      d.y = cy + center(d.angle, adjustedDistance).cy;
+      const links_count = links.filter(
+        link => d.id === link.node1 || d.id === link.node2
+      ).length;
+      d.r = config.nodeSize + links_count * config.nodeSizeStep;
+      return `translate(${d.x}, ${d.y})`;
+    });
+  nodesG
+    .append("circle")
+    .attr("fill", config[theme].levelCircles[levelNo].nodeColor)
+    .attr("stroke-width", config.thickness * 2)
+    .attr("stroke", config[theme].levelCircles[levelNo].nodeStroke)
+    .style("cursor", "pointer")
+    .style("opacity", showType === "circle" ? 1 : 0)
+    .attr("r", d => d.r);
+  nodesG
+    .append("svg:image")
+    .style("cursor", "pointer")
+    .attr("xlink:href", d => {
+      let iconName = d.Software[0].Icon || "ei-windows";
+      iconName = iconName.replace("ei-", "");
+      return require(`../../assets/icons/svg/${iconName}.svg`);
+    })
+    .style("opacity", showType === "icon" ? 1 : 0)
+    .attr("x", d => -d.r)
+    .attr("y", d => -d.r)
+    .attr("width", d => d.r * 2)
+    .attr("height", d => d.r * 2);
   nodesG
     .append("text")
     .attr("text-anchor", "middle")
@@ -281,65 +221,55 @@ export const nodeGrouping = (
     .style("font-size", d => (d.fs = config.defaultFontSize))
     .style("fill", config[theme].nodeTextColor)
     .style("pointer-events", "none")
-    .attr("x", d => d.x)
-    .attr("y", d => d.y - d.r - 5)
+    .attr("dy", d => -(d.r + 5))
     .text(d => d.name)
     .raise();
-
   wrapper.raise();
 };
 
-export const nodesGroupingRing4 = (
+export const addNodesOfRing4 = (
   wrapper,
   nodes,
   links,
   config,
   levelInfo,
   showType = "circle",
-  theme = "dark",
-  clickedNode = null
+  theme = "dark"
 ) => {
   const ring4Level = config.levelCounts - 1;
   const nodesHasring4 = nodesHasRing4(nodes, links);
-  let childNodes = [];
   nodesHasring4.forEach(pNode => {
-    childNodes = links
+    let childNodes = links
       .filter(
         link => link.target.id === pNode.id && link.source.Level === ring4Level
       )
       .map(d => d.source);
 
-    childNodes.forEach(child => {
-      wrapper.select(`.ind-node-${child.id}`).remove();
-      // wrapper.select(`.ind-node-${child.id}`).style("opacity", config.ring4DefaultOpacity);
-    });
     let rad = childNodes.length * config.baseRadius * 0.3;
-    if (clickedNode && clickedNode.id === pNode.id) {
-      rad = childNodes.length * config.baseRadius;
-    }
-
     const outer =
       levelInfo[pNode.Level].radius - levelInfo[pNode.Level].distance;
-    nodeGrouping(
+
+    addNodes(
       wrapper,
-      pNode.cx + Math.cos(pNode.angle * 2) * (outer + rad) * 1.5,
-      pNode.cy + Math.sin(pNode.angle * 2) * (outer + rad) * 1.5,
+      pNode.x + Math.cos(pNode.angle * 2) * (outer + rad) * 1.5,
+      pNode.y + Math.sin(pNode.angle * 2) * (outer + rad) * 1.5,
       rad,
       childNodes,
       links,
       ring4Level,
       config,
       showType,
-      theme, 
+      theme,
+      pNode.id,
       true
     );
   });
 };
 
-export const linking = (wrapper, links, config, theme = "dark") => {
+export const addLinks = (wrapper, links, config, theme = "dark") => {
   const ring4Level = config.levelCounts - 1;
   wrapper
-    .selectAll(".links")
+    .selectAll("links")
     .data(links)
     .enter()
     .append("path")
@@ -353,7 +283,76 @@ export const linking = (wrapper, links, config, theme = "dark") => {
     );
 };
 
-export const reLinking = (wrapper, config, theme = "dark") => {
+export const updateNodes = (
+  wrapper,
+  nodes,
+  links,
+  config,
+  levelInfo,
+  showType = "circle",
+  theme = "dark",
+  clickedNode = null
+) => {
+  const ring4Level = config.levelCounts - 1;
+  if (showType === "circle") {
+    wrapper
+      .selectAll(".nodes")
+      .select("circle")
+      .attr("fill", d => config[theme].levelCircles[d.Level].nodeColor)
+      .attr("stroke", d => config[theme].levelCircles[d.Level].nodeStroke)
+      .style("opacity", 1);
+    wrapper
+      .selectAll(".nodes")
+      .select("image")
+      .style("opacity", 0);
+  } else {
+    wrapper
+      .selectAll(".nodes")
+      .select("circle")
+      .style("opacity", 0);
+    wrapper
+      .selectAll(".nodes")
+      .select("image")
+      .style("opacity", 1);
+  }
+  wrapper
+    .selectAll(".nodes")
+    .select("text")
+    .style("fill", config[theme].nodeTextColor);
+
+  const nodesHasring4 = nodesHasRing4(nodes, links);
+  nodesHasring4.forEach(pNode => {
+    let childNodes = links
+      .filter(
+        link => link.target.id === pNode.id && link.source.Level === ring4Level
+      )
+      .map(d => d.source);
+
+    let rad = childNodes.length * config.baseRadius * 0.3;
+    if (clickedNode && clickedNode.id === pNode.id) {
+      rad = childNodes.length * config.baseRadius;
+    }
+
+    const outer =
+        levelInfo[pNode.Level].radius - levelInfo[pNode.Level].distance,
+      new_cx = pNode.x + Math.cos(pNode.angle * 2) * (outer + rad) * 1.5,
+      new_cy = pNode.y + Math.sin(pNode.angle * 2) * (outer + rad) * 1.5;
+    
+    wrapper.selectAll(`.pnode-${pNode.id}`).attr("transform", (d, i) => {
+      let adjustedDistance = utils.pattern_distance(
+        childNodes.length,
+        i + 1,
+        rad
+      );
+      d.x = new_cx + center(d.angle, adjustedDistance).cx;
+      d.y = new_cy + center(d.angle, adjustedDistance).cy;      
+      return `translate(${d.x}, ${d.y})`;
+    });    
+  });
+  wrapper.raise();
+};
+
+export const updateLinks = (wrapper, config, theme = "dark") => {
   const ring4Level = config.levelCounts - 1;
   wrapper
     .selectAll(".links")
