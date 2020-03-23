@@ -70,7 +70,7 @@ function HomePage() {
         config={{
           duration: 600,
           nodeSize: 10,
-          thickness: 3,
+          thickness: 2,
           nodeSizeStep: 1,
           baseRadius: 15,
           levelCounts: 5,

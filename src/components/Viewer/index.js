@@ -169,7 +169,6 @@ export const Viewer = ({ data, width, height, config }) => {
     }
     addNodesOfRing4(nodesWrapper, nodes, links, config, levelInfos.current);
     addLinks(linksWrapper, links, config);
-    console.log("effect 1");
   }, []);
 
   React.useEffect(() => {
@@ -271,7 +270,7 @@ export const Viewer = ({ data, width, height, config }) => {
       d3.select(this)
         .select("circle")
         .style("stroke", config[theme].highlightColor)
-        .attr("stroke-width", config[theme].thickness);
+        .attr("stroke-width", config.thickness * 2);
       
       nodesWrapper.selectAll(`.pnode-${d.id}`).style("opacity", extendedView ? config.ring4HoverOpacity : 0);
       links
@@ -288,8 +287,8 @@ export const Viewer = ({ data, width, height, config }) => {
         });
         
       if (magnifyMode) return;
-      let filteredPathArr = centeringPaths(d, config.levelCounts, links);
-      filteredPathArr.forEach((fpaths, i) => {
+      let filteredPathArr = centeringPaths(d, config.levelCounts, links);      
+      filteredPathArr.forEach((fpaths, i) => {        
         linksWrapper
           .selectAll(`.level${i}-paths`)
           .data(fpaths)

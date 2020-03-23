@@ -197,7 +197,7 @@ export const addNodes = (
   nodesG
     .append("circle")
     .attr("fill", config[theme].levelCircles[levelNo].nodeColor)
-    .attr("stroke-width", config.thickness * 2)
+    .attr("stroke-width", config.thickness)
     .attr("stroke", config[theme].levelCircles[levelNo].nodeStroke)
     .style("cursor", "pointer")
     .style("opacity", showType === "circle" ? 1 : 0)
