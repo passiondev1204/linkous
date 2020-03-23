@@ -22,21 +22,14 @@ import utils from "../../utils";
 import {
   zoom,
   fisheye,
-  filteredPaths,
   maxCountsOfLevel,
-  getLinks,
-  forwardCenterPaths,
-  centeringPaths,
-  reLinking,
-  nodesHasRing4,
-  hasRing4Nodes,
-  center,
   addNodes,
+  addNodesOfRing4,
   addLinks,
+  getLinks,
   updateNodes,
   updateLinks,
-  nodeReGrouping,
-  addNodesOfRing4
+  centeringPaths
 } from "./functions";
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -91,8 +84,7 @@ export const Viewer = ({ data, width, height, config }) => {
   const timeoutRef = React.useRef();
   const tooltipContentRef = React.useRef();
   const levelInfos = React.useRef([]);
-  const nodesRef = React.useRef(null);
-  const linksRef = React.useRef(null);
+  const openedNode = React.useRef(null);
 
   const [tooltipAnchorEl, setTooltipAnchorEl] = React.useState(null);
   const [tooltipOpen, setTooltipOpen] = React.useState(false);
@@ -104,6 +96,9 @@ export const Viewer = ({ data, width, height, config }) => {
     x: null,
     y: null
   });
+
+  let nodes = data.nodes,
+    links = getLinks(data.nodes, data.links);
 
   const onContextMenu = evt => {
     evt.preventDefault();
@@ -160,171 +155,101 @@ export const Viewer = ({ data, width, height, config }) => {
       .style("opacity", config[theme].fillOpacity)
       .lower();
 
-    nodesRef.current = data.nodes;
-    linksRef.current = getLinks(data.nodes, data.links);
-    
     for (let i = 0; i < config.levelCounts - 1; i++) {
       addNodes(
         nodesWrapper,
         base_cx,
         base_cy,
         levelInfos.current[i].distance,
-        nodesRef.current.filter(node => node.Level === i),
-        linksRef.current,
+        nodes.filter(node => node.Level === i),
+        links,
         i,
         config
       );
     }
-    addNodesOfRing4(nodesWrapper, nodesRef.current, linksRef.current, config, levelInfos.current);
-    addLinks(linksWrapper, linksRef.current, config);
-    console.log('effect 1')
+    addNodesOfRing4(nodesWrapper, nodes, links, config, levelInfos.current);
+    addLinks(linksWrapper, links, config);
+    console.log("effect 1");
   }, []);
 
   React.useEffect(() => {
-    console.log('effect 2')
-    console.log(nodesRef.current.filter(d => d.id === 33), 'chagenn');
     const ring4Level = config.levelCounts - 1;
     const graph = d3.select(".graph");
 
     const nodesWrapper = graph.select(".nodes-wrapper");
     const linksWrapper = graph.select(".links-wrapper");
     
-    updateNodes(nodesWrapper, nodesRef.current, linksRef.current, config, levelInfos.current, showType, theme);
-    updateLinks(linksWrapper, config, theme);
-    graph.select(".lens").style("opacity", magnifyMode ? 1 : 0);
+    if(openedNode.current) {
+      updateNodes(
+        nodesWrapper,
+        nodes,
+        links,
+        config,
+        levelInfos.current,
+        showType,
+        theme,
+        extendedView,
+        openedNode.current
+      )
+    } else {
+      updateNodes(
+        nodesWrapper,
+        nodes,
+        links,
+        config,
+        levelInfos.current,
+        showType,
+        theme,
+        extendedView
+      );
+    }
+    updateLinks(linksWrapper, config, theme, extendedView);
+    const lens = graph.select(".lens").style("opacity", magnifyMode ? 1 : 0);
     nodesWrapper
       .selectAll(".nodes")
       .on("click", nodeClick)
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut);
 
-    // if (extendedView) {
-    //   // nodesWrapper.selectAll("*").remove();
-    //   // for (let i = 0; i < config.levelCounts - 1; i++) {
-    //   //   nodeGrouping(
-    //   //     nodesWrapper,
-    //   //     base_cx,
-    //   //     base_cy,
-    //   //     levelInfos.current[i].distance,
-    //   //     nodesRef.current.filter(node => node.Level === i),
-    //   //     linksRef.current,
-    //   //     i,
-    //   //     config,
-    //   //     showType,
-    //   //     theme
-    //   //   );
-    //   // }
+    graph.on("mousemove", function() {
+      if (!magnifyMode) return;
+      const m = d3.mouse(this);
+      fisheye.focus(m);
+      lens.attr("cx", m[0]).attr("cy", m[1]);
       
-    //   nodesWrapper
-    //     .selectAll(".nodes")
-    //     .select("image")
-    //     .on("click", nodeClick)
-    //     .on("mouseover", nodeMouseOver)
-    //     .on("mouseout", nodeMouseOut);
-    //   // nodesGroupingRing4(
-    //   //   nodesWrapper,
-    //   //   nodesRef.current,
-    //   //   linksRef.current,
-    //   //   config,
-    //   //   levelInfos.current,
-    //   //   showType, 
-    //   //   theme
-    //   // );
-    //   reLinking(linksWrapper, config, theme);
-    // } else {
-    //   nodesWrapper.selectAll(`.nodes-${config.levelCounts - 1}`).remove();
-    //   linksWrapper.selectAll(".links").each(function(d) {
-    //     if (d.source.Level === config.levelCounts - 1) {
-    //       d3.select(this).style("opacity", 0);
-    //     }
-    //   });
-    // }
-
-    // graph.on("mousemove", function() {
-    //   if (!magnifyMode) return;
-    //   const m = d3.mouse(this);
-    //   fisheye.focus(m);
-    //   lens.attr("cx", m[0]).attr("cy", m[1]);
-    //   if (showType === "circle") {
-    //     nodesWrapper
-    //       .selectAll(".nodes")
-    //       .each(d => {
-    //         d.fisheye = fisheye(d);
-    //       })
-    //       .select("circle")
-    //       .attr("cx", d => d.fisheye.x)
-    //       .attr("cy", d => d.fisheye.y)
-    //       .attr("r", d => d.r * d.fisheye.z * 0.8);
-    //   } else {
-    //     nodesWrapper
-    //       .selectAll(".nodes")
-    //       .each(d => {
-    //         d.fisheye = fisheye(d);
-    //       })
-    //       .select("image")
-    //       .attr("x", d => d.fisheye.x - d.r * d.fisheye.z * 0.8)
-    //       .attr("y", d => d.fisheye.y - d.r * d.fisheye.z * 0.8)
-    //       .attr("width", d => d.r * 2 * d.fisheye.z)
-    //       .attr("height", d => d.r * 2 * d.fisheye.z);
-    //   }
-    //   nodesWrapper
-    //     .selectAll(".nodes")
-    //     .select("text")
-    //     .attr("x", d => d.fisheye.x)
-    //     .attr("y", d => d.fisheye.y - d.r * d.fisheye.z - 5)
-    //     .attr("font-size", d => d.fisheye.z * d.fs)
-    //     .style("font-size", d => d.fisheye.z * d.fs);
-    //   linksWrapper
-    //     .selectAll(".links")
-    //     .attr(
-    //       "d",
-    //       d =>
-    //         `M${d.source.fisheye.x} ${d.source.fisheye.y}L${d.target.fisheye.x} ${d.target.fisheye.y}`
-    //     );
-    // });
+        nodesWrapper
+          .selectAll(".nodes")
+          .each(d => {
+            d.fisheye = fisheye(d);
+          })
+          .attr("transform", d => `translate(${d.fisheye.x}, ${d.fisheye.y})scale(${d.fisheye.z})`);
+      
+      linksWrapper
+        .selectAll(".links")
+        .attr(
+          "d",
+          d =>
+            `M${d.source.fisheye.x} ${d.source.fisheye.y}L${d.target.fisheye.x} ${d.target.fisheye.y}`
+        );
+    });
 
     function nodeClick(d) {
-      if (!d.hasRing4) return;
+      if (!d.hasRing4 || !extendedView) return;
+      openedNode.current = d;
       updateNodes(
         nodesWrapper,
-        nodesRef.current,
-        linksRef.current,
+        nodes,
+        links,
         config,
         levelInfos.current,
         showType,
         theme,
+        extendedView,
         d
       );
       updateLinks(linksWrapper, config, theme);
-      console.log(nodesRef.current.filter(d => d.id === 33), 'chagenn when click');
-    }
-    function nodeMouseOver(d) {
-      tooltipContentRef.current = d;
-      clearTimeout(timeoutRef.current);
-      setTooltipAnchorEl(d3.event.currentTarget);
-      setTooltipOpen(true);
-
-      d3.select(this).select("circle")
-        .style("stroke", config[theme].highlightColor)
-        .attr("stroke-width", config[theme].thickness);
-
-      const childNodes = linksRef.current.filter(
-        link =>
-          link.target.id === d.id &&
-          link.source.Level === config.levelCounts - 1
-      );
-      if (childNodes) {
-        nodesWrapper.selectAll(".nodes").style("opacity", p =>
-          childNodes
-            .map(k => k.source)
-            .map(e => e.id)
-            .includes(p.id)
-            ? config.ring4HoverOpacity
-            : "auto"
-        );
-      }
-
-      linksRef.current
+      nodesWrapper.selectAll(`.pnode-${d.id}`).style("opacity", extendedView ? config.ring4HoverOpacity : 0);
+      links
         .filter(link => link.node1 === d.id || link.node2 === d.id)
         .forEach(link => {
           linksWrapper
@@ -334,11 +259,36 @@ export const Viewer = ({ data, width, height, config }) => {
             .style(
               "opacity",
               link.source.Level === ring4Level ? config.ring4HoverOpacity : 1
-            )
-            .raise();
+            );
         });
+    }
+    function nodeMouseOver(d) {
+      tooltipContentRef.current = d;
+      clearTimeout(timeoutRef.current);
+      setTooltipAnchorEl(d3.event.currentTarget);
+      setTooltipOpen(true);
+
+      d3.select(this)
+        .select("circle")
+        .style("stroke", config[theme].highlightColor)
+        .attr("stroke-width", config[theme].thickness);
+      
+      nodesWrapper.selectAll(`.pnode-${d.id}`).style("opacity", extendedView ? config.ring4HoverOpacity : 0);
+      links
+        .filter(link => link.node1 === d.id || link.node2 === d.id)
+        .forEach(link => {
+          linksWrapper
+            .select(`.link-${link.source.id}-${link.target.id}`)
+            .style("stroke", config[theme].linkHighlightColor)
+            .attr("stroke-width", config.thickness * 3)
+            .style(
+              "opacity",
+              link.source.Level === ring4Level ? extendedView ? config.ring4HoverOpacity : 0 : 1
+            );
+        });
+        
       if (magnifyMode) return;
-      let filteredPathArr = centeringPaths(d, config.levelCounts, linksRef.current);
+      let filteredPathArr = centeringPaths(d, config.levelCounts, links);
       filteredPathArr.forEach((fpaths, i) => {
         linksWrapper
           .selectAll(`.level${i}-paths`)
@@ -366,40 +316,27 @@ export const Viewer = ({ data, width, height, config }) => {
         setTooltipOpen(false);
         setTooltipAnchorEl(null);
       }, config.duration);
-      d3.select(this).select("circle")
+      d3.select(this)
+        .select("circle")
         .style("stroke", config[theme].levelCircles[d.Level].nodeStroke)
-        .attr("stroke-width", config.thickness * 2);
-      const childNodes = linksRef.current.filter(
-        link =>
-          link.target.id === d.id &&
-          link.source.Level === config.levelCounts - 1
-      );
-      if (childNodes) {
-        nodesWrapper.selectAll(".nodes").style("opacity", p =>
-          childNodes
-            .map(k => k.source)
-            .map(e => e.id)
-            .includes(p.id)
-            ? 0.1
-            : "auto"
-        );
-      }
+        .attr("stroke-width", config.thickness);
+      nodesWrapper.selectAll(`.pnode-${d.id}`).style("opacity", extendedView ? config.ring4DefaultOpacity : 0);
       linksWrapper.selectAll(".effect-line").remove();
-      linksRef.current
+      links
         .filter(link => link.node1 === d.id || link.node2 === d.id)
         .forEach(link => {
           linksWrapper
             .select(`.link-${link.source.id}-${link.target.id}`)
-            .style("stroke", config[theme].linkColor)
-            .attr("stroke-width", config.thickness * 0.5)
+            .style("stroke", config[theme].linkHighlightColor)
+            .attr("stroke-width", config.thickness)
             .style(
               "opacity",
-              link.source.Level === config.levelCounts - 1 ? 0.1 : 1
-            )
-            .lower();
+              link.source.Level === ring4Level ? extendedView ? config.ring4DefaultOpacity : 0 : 1
+            );
         });
     }
-  }, [config, width, height, showType, theme, extendedView, magnifyMode]);
+    
+  }, [config, width, height, showType, theme, extendedView, magnifyMode, links, nodes]);
   return (
     <>
       <div className={classes.svgContainer} onContextMenu={onContextMenu}>
@@ -431,8 +368,10 @@ export const Viewer = ({ data, width, height, config }) => {
           <FormControlLabel
             control={
               <Switch
-                checked={theme === "dark" ? true : false }
-                onChange={evt => setTheme(evt.target.checked ? "dark" : "white")}
+                checked={theme === "dark" ? true : false}
+                onChange={evt =>
+                  setTheme(evt.target.checked ? "dark" : "white")
+                }
                 color="primary"
               />
             }

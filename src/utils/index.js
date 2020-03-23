@@ -16,5 +16,6 @@ export default {
       rgba: `rgb(${r}, ${g}, ${b}, 0.1)`
     };
   },
-  randomRange: (min, max) => Math.random() * (max - min) + min
+  randomRange: (min, max) => Math.random() * (max - min) + min,
+  clone: val => JSON.parse(JSON.stringify(val))
 };

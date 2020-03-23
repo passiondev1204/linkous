@@ -169,6 +169,7 @@ export const addNodes = (
       "class",
       d => {
         d.hasRing4 = hasRing4Nodes(d, links);
+        if(parentId) d.parentId = parentId;
         return `nodes ${
           config[theme].levelCircles.length - 1 === d.Level
             ? `pnode-${parentId}`
@@ -273,11 +274,11 @@ export const addLinks = (wrapper, links, config, theme = "dark") => {
     .data(links)
     .enter()
     .append("path")
-    .attr("class", d => `links link-${d.source.id}-${d.target.id}`)
+    .attr("class", d => `links link-${d.source.id}-${d.target.id} ${d.source.Level === ring4Level ? `ring4-link-${d.target.id}` : ''}`)
     .style("pointer-events", "none")
     .attr("d", d => `M${d.source.x} ${d.source.y}L${d.target.x} ${d.target.y}`)
     .style("stroke", config[theme].linkColor)
-    .attr("stroke-width", config.thickness * 0.5)
+    .attr("stroke-width", config.thickness)
     .style("opacity", d =>
       d.source.Level === ring4Level ? config.ring4DefaultOpacity : 1
     );
@@ -291,9 +292,11 @@ export const updateNodes = (
   levelInfo,
   showType = "circle",
   theme = "dark",
+  extended = true,
   clickedNode = null
 ) => {
   const ring4Level = config.levelCounts - 1;
+  
   if (showType === "circle") {
     wrapper
       .selectAll(".nodes")
@@ -347,21 +350,22 @@ export const updateNodes = (
       d.x = new_cx + center(d.angle, adjustedDistance).cx;
       d.y = new_cy + center(d.angle, adjustedDistance).cy;      
       return `translate(${d.x}, ${d.y})`;
-    });    
+    })
+    .style("opacity", extended ? config.ring4DefaultOpacity : 0);
   });
   wrapper.raise();
 };
 
-export const updateLinks = (wrapper, config, theme = "dark") => {
+export const updateLinks = (wrapper, config, theme = "dark", extended = true) => {
   const ring4Level = config.levelCounts - 1;
   wrapper
     .selectAll(".links")
-    .attr("class", d => `links link-${d.source.id}-${d.target.id}`)
+    // .attr("class", d => `links link-${d.source.id}-${d.target.id} ${d.source.Level === ring4Level ? `ring4-link-${d.source.id}` : ''}`)
     .style("pointer-events", "none")
     .attr("d", d => `M${d.source.x} ${d.source.y}L${d.target.x} ${d.target.y}`)
     .style("stroke", config[theme].linkColor)
-    .attr("stroke-width", config.thickness * 0.5)
+    .attr("stroke-width", config.thickness)
     .style("opacity", d =>
-      d.source.Level === ring4Level ? config.ring4DefaultOpacity : 1
+      d.source.Level === ring4Level ? extended ? config.ring4DefaultOpacity : 0 : 1
     );
 };
