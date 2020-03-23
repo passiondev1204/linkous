@@ -1,4 +1,10 @@
 export default {
+  MOUSE_EVENT_TYPE: {
+    CLICK: 'click',
+    HOVER: 'hover',
+    OUT: 'none',
+    NONE: 'none'
+  },
   color: {
     CRITICAL: {
       main: "rgb(205, 62, 73)",

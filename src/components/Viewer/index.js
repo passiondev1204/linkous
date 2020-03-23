@@ -18,7 +18,9 @@ import CheckBoxIcon from "@material-ui/icons/CheckBox";
 import CheckBoxOutlineBlankIcon from "@material-ui/icons/CheckBoxOutlineBlank";
 import FiberManualRecordIcon from "@material-ui/icons/FiberManualRecord";
 import ImageIcon from "@material-ui/icons/Image";
+import { SearchInputBox } from "../SearchInputBox";
 import utils from "../../utils";
+import global from "../../global";
 import {
   zoom,
   fisheye,
@@ -31,6 +33,7 @@ import {
   updateLinks,
   centeringPaths
 } from "./functions";
+
 const useStyles = makeStyles(theme => ({
   paper: {
     padding: theme.spacing(1),
@@ -108,6 +111,42 @@ export const Viewer = ({ data, width, height, config }) => {
     });
   };
 
+  const onCenter = () => {
+    d3.select(svgRef.current).call(
+      zoom.transform,
+      d3.zoomIdentity.translate(0, 0).scale(1)
+    );
+    setContextPosition({ x: null, y: null });
+  };
+
+  const onSearch = searchText => {
+    console.log(searchText, "searcText");
+    nodes.forEach(node => {
+      if(searchText && node.name.toLowerCase().includes(searchText.toLowerCase())) {
+        node.searched = true;
+      }else {
+        node.searched = false;
+      }
+    })
+    
+    const graph = d3.select(".graph");
+    const nodesWrapper = graph.select(".nodes-wrapper");
+    updateNodes(
+      nodesWrapper,
+      nodes,
+      links,
+      config,
+      levelInfos.current,
+      showType,
+      theme,
+      extendedView,
+      {
+        action: global.MOUSE_EVENT_TYPE.NONE,
+        node: null
+      }
+    );
+  };
+
   React.useEffect(() => {
     const base_cx = width / 2,
       base_cy = height / 2;
@@ -172,13 +211,13 @@ export const Viewer = ({ data, width, height, config }) => {
   }, [theme]);
 
   React.useEffect(() => {
-    const ring4Level = config.levelCounts - 1;
+    console.log("effect 2");
     const graph = d3.select(".graph");
 
     const nodesWrapper = graph.select(".nodes-wrapper");
     const linksWrapper = graph.select(".links-wrapper");
-    
-    if(openedNode.current) {
+
+    if (openedNode.current) {
       updateNodes(
         nodesWrapper,
         nodes,
@@ -188,8 +227,11 @@ export const Viewer = ({ data, width, height, config }) => {
         showType,
         theme,
         extendedView,
-        openedNode.current
-      )
+        {
+          action: global.MOUSE_EVENT_TYPE.CLICK,
+          node: openedNode.current
+        }
+      );
     } else {
       updateNodes(
         nodesWrapper,
@@ -199,10 +241,14 @@ export const Viewer = ({ data, width, height, config }) => {
         levelInfos.current,
         showType,
         theme,
-        extendedView
+        extendedView,
+        {
+          action: global.MOUSE_EVENT_TYPE.NONE,
+          node: null
+        }
       );
     }
-    updateLinks(linksWrapper, config, theme, extendedView);
+    updateLinks(linksWrapper, null, config, theme, extendedView);
     const lens = graph.select(".lens").style("opacity", magnifyMode ? 1 : 0);
     nodesWrapper
       .selectAll(".nodes")
@@ -215,14 +261,17 @@ export const Viewer = ({ data, width, height, config }) => {
       const m = d3.mouse(this);
       fisheye.focus(m);
       lens.attr("cx", m[0]).attr("cy", m[1]);
-      
-        nodesWrapper
-          .selectAll(".nodes")
-          .each(d => {
-            d.fisheye = fisheye(d);
-          })
-          .attr("transform", d => `translate(${d.fisheye.x}, ${d.fisheye.y})scale(${d.fisheye.z})`);
-      
+
+      nodesWrapper
+        .selectAll(".nodes")
+        .each(d => {
+          d.fisheye = fisheye(d);
+        })
+        .attr(
+          "transform",
+          d => `translate(${d.fisheye.x}, ${d.fisheye.y})scale(${d.fisheye.z})`
+        );
+
       linksWrapper
         .selectAll(".links")
         .attr(
@@ -244,51 +293,40 @@ export const Viewer = ({ data, width, height, config }) => {
         showType,
         theme,
         extendedView,
-        d
+        {
+          action: global.MOUSE_EVENT_TYPE.CLICK,
+          node: d
+        }
       );
-      updateLinks(linksWrapper, config, theme);
-      nodesWrapper.selectAll(`.pnode-${d.id}`).style("opacity", extendedView ? config.ring4HoverOpacity : 0);
-      links
-        .filter(link => link.node1 === d.id || link.node2 === d.id)
-        .forEach(link => {
-          linksWrapper
-            .select(`.link-${link.source.id}-${link.target.id}`)
-            .style("stroke", config[theme].linkHighlightColor)
-            .attr("stroke-width", config.lineThickness * 2)
-            .style(
-              "opacity",
-              link.source.Level === ring4Level ? config.ring4HoverOpacity : 1
-            );
-        });
+      updateLinks(linksWrapper, d, config, theme, extendedView);
     }
     function nodeMouseOver(d) {
+      d3.event.stopPropagation();
       tooltipContentRef.current = d;
       clearTimeout(timeoutRef.current);
       setTooltipAnchorEl(d3.event.currentTarget);
       setTooltipOpen(true);
 
-      d3.select(this)
-        .select("circle")
-        .style("stroke", config[theme].highlightColor)
-        .attr("stroke-width", config.nodeThickness);
-      
-      nodesWrapper.selectAll(`.pnode-${d.id}`).style("opacity", extendedView ? config.ring4HoverOpacity : 0);
-      links
-        .filter(link => link.node1 === d.id || link.node2 === d.id)
-        .forEach(link => {
-          linksWrapper
-            .select(`.link-${link.source.id}-${link.target.id}`)
-            .style("stroke", config[theme].linkHighlightColor)
-            .attr("stroke-width", config.lineThickness * 2)
-            .style(
-              "opacity",
-              link.source.Level === ring4Level ? extendedView ? config.ring4HoverOpacity : 0 : 1
-            );
-        });
-        
+      updateNodes(
+        nodesWrapper,
+        nodes,
+        links,
+        config,
+        levelInfos.current,
+        showType,
+        theme,
+        extendedView,
+        {
+          action: global.MOUSE_EVENT_TYPE.HOVER,
+          node: d
+        }
+      );
+
+      updateLinks(linksWrapper, d, config, theme, extendedView);
+
       if (magnifyMode) return;
-      let filteredPathArr = centeringPaths(d, config.levelCounts, links);      
-      filteredPathArr.forEach((fpaths, i) => {        
+      let filteredPathArr = centeringPaths(d, config.levelCounts, links);
+      filteredPathArr.forEach((fpaths, i) => {
         linksWrapper
           .selectAll(`.level${i}-paths`)
           .data(fpaths)
@@ -315,27 +353,24 @@ export const Viewer = ({ data, width, height, config }) => {
         setTooltipOpen(false);
         setTooltipAnchorEl(null);
       }, config.duration);
-      d3.select(this)
-        .select("circle")
-        .style("stroke", config[theme].levelCircles[d.Level].nodeStroke)
-        .attr("stroke-width", config.nodeThickness);
-      nodesWrapper.selectAll(`.pnode-${d.id}`).style("opacity", extendedView ? config.ring4DefaultOpacity : 0);
+      updateNodes(
+        nodesWrapper,
+        nodes,
+        links,
+        config,
+        levelInfos.current,
+        showType,
+        theme,
+        extendedView,
+        {
+          action: global.MOUSE_EVENT_TYPE.OUT,
+          node: null
+        }
+      );
+      updateLinks(linksWrapper, null, config, theme, extendedView);
       linksWrapper.selectAll(".effect-line").remove();
-      links
-        .filter(link => link.node1 === d.id || link.node2 === d.id)
-        .forEach(link => {
-          linksWrapper
-            .select(`.link-${link.source.id}-${link.target.id}`)
-            .style("stroke", config[theme].linkHighlightColor)
-            .attr("stroke-width", config.lineThickness)
-            .style(
-              "opacity",
-              link.source.Level === ring4Level ? extendedView ? config.ring4DefaultOpacity : 0 : 1
-            );
-        });
     }
-    
-  }, [config, width, height, showType, theme, extendedView, magnifyMode, links, nodes]);
+  }, [config, width, height, showType, theme, extendedView, magnifyMode]);
   return (
     <>
       <div className={classes.svgContainer} onContextMenu={onContextMenu}>
@@ -400,6 +435,7 @@ export const Viewer = ({ data, width, height, config }) => {
             Ring 3: {data.nodes.filter(d => d.Level === 3).length}
           </Typography>
         </Paper>
+        <SearchInputBox onSearch={onSearch} />
       </div>
       {!magnifyMode && (
         <Popper
@@ -481,6 +517,9 @@ export const Viewer = ({ data, width, height, config }) => {
             <CheckBoxOutlineBlankIcon className={classes.checkItem} />
           )}
           Magnifier
+        </MenuItem>
+        <MenuItem onClick={onCenter} className={classes.menuItem}>
+          Center
         </MenuItem>
       </Menu>
     </>

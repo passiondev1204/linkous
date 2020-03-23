@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import fisheyer from "./fisheye";
+import global from "../../global";
 import utils from "../../utils";
 
 export const zoom = d3.zoom();
@@ -165,17 +166,15 @@ export const addNodes = (
     .data(nodes)
     .enter()
     .append("g")
-    .attr(
-      "class",
-      d => {
-        d.hasRing4 = hasRing4Nodes(d, links);
-        if(parentId) d.parentId = parentId;
-        return `nodes ${
-          config[theme].levelCircles.length - 1 === d.Level
-            ? `pnode-${parentId}`
-            : ""
-        }`
-      })
+    .attr("class", d => {
+      d.hasRing4 = hasRing4Nodes(d, links);
+      if (parentId) d.parentId = parentId;
+      return `nodes ${
+        config[theme].levelCircles.length - 1 === d.Level
+          ? `pnode-${parentId}`
+          : ""
+      }`;
+    })
     .style("opacity", d =>
       d.Level === ring4Level ? config.ring4DefaultOpacity : 1
     )
@@ -274,11 +273,11 @@ export const addLinks = (wrapper, links, config, theme = "dark") => {
     .data(links)
     .enter()
     .append("path")
-    .attr("class", d => `links link-${d.source.id}-${d.target.id} ${d.source.Level === ring4Level ? `ring4-link-${d.target.id}` : ''}`)
+    .attr("class", d => `links link-${d.source.id}-${d.target.id}`)
     .style("pointer-events", "none")
     .attr("d", d => `M${d.source.x} ${d.source.y}L${d.target.x} ${d.target.y}`)
     .style("stroke", config[theme].linkColor)
-    .attr("stroke-width", config.lineThickness)
+    .style("stroke-width", config.lineThickness)
     .style("opacity", d =>
       d.source.Level === ring4Level ? config.ring4DefaultOpacity : 1
     );
@@ -293,10 +292,11 @@ export const updateNodes = (
   showType = "circle",
   theme = "dark",
   extended = true,
-  clickedNode = null
+  actionObj
 ) => {
   const ring4Level = config.levelCounts - 1;
-  
+  const nodesHasring4 = nodesHasRing4(nodes, links);
+
   if (showType === "circle") {
     wrapper
       .selectAll(".nodes")
@@ -322,48 +322,139 @@ export const updateNodes = (
     .selectAll(".nodes")
     .select("text")
     .style("fill", config[theme].nodeTextColor);
-
-  const nodesHasring4 = nodesHasRing4(nodes, links);
-  nodesHasring4.forEach(pNode => {
-    let childNodes = links
-      .filter(
-        link => link.target.id === pNode.id && link.source.Level === ring4Level
-      )
-      .map(d => d.source);
-
-    let rad = childNodes.length * config.baseRadius * 0.3;
-    if (clickedNode && clickedNode.id === pNode.id) {
-      rad = childNodes.length * config.baseRadius;
-    }
-
-    const outer =
-        levelInfo[pNode.Level].radius - levelInfo[pNode.Level].distance,
-      new_cx = pNode.x + Math.cos(pNode.angle * 2) * (outer + rad) * 1.5,
-      new_cy = pNode.y + Math.sin(pNode.angle * 2) * (outer + rad) * 1.5;
-    
-    wrapper.selectAll(`.pnode-${pNode.id}`).attr("transform", (d, i) => {
-      let adjustedDistance = utils.pattern_distance(
-        childNodes.length,
-        i + 1,
-        rad
+  if (extended) {
+    wrapper
+      .selectAll(".nodes")
+      .style("pointer-events", "auto")
+      .style("visibility", "visible");
+  } else {
+    wrapper
+      .selectAll(".nodes")
+      .style("pointer-events", d => (d.Level === ring4Level ? "none" : "auto"))
+      .style("visibility", d =>
+        d.Level === ring4Level ? "hidden" : "visible"
       );
-      d.x = new_cx + center(d.angle, adjustedDistance).cx;
-      d.y = new_cy + center(d.angle, adjustedDistance).cy;      
-      return `translate(${d.x}, ${d.y})`;
-    })
-    .style("opacity", extended ? config.ring4DefaultOpacity : 0);
-  });
-  wrapper.raise();
+  }
+
+  if (actionObj.action === global.MOUSE_EVENT_TYPE.CLICK) {    
+    nodesHasring4.forEach(pNode => {
+      let childNodes = links
+        .filter(
+          link =>
+            link.target.id === pNode.id && link.source.Level === ring4Level
+        )
+        .map(d => d.source);
+
+      let rad = childNodes.length * config.baseRadius * 0.3;
+      if (actionObj.node.id === pNode.id) {
+        rad = childNodes.length * config.baseRadius;
+      }
+
+      const outer =
+          levelInfo[pNode.Level].radius - levelInfo[pNode.Level].distance,
+        new_cx = pNode.x + Math.cos(pNode.angle * 2) * (outer + rad) * 1.5,
+        new_cy = pNode.y + Math.sin(pNode.angle * 2) * (outer + rad) * 1.5;
+
+      wrapper
+        .selectAll(`.pnode-${pNode.id}`)
+        .attr("transform", (d, i) => {
+          let adjustedDistance = utils.pattern_distance(
+            childNodes.length,
+            i + 1,
+            rad
+          );
+          d.x = new_cx + center(d.angle, adjustedDistance).cx;
+          d.y = new_cy + center(d.angle, adjustedDistance).cy;
+          return `translate(${d.x}, ${d.y})`;
+        })
+        .style(
+          "opacity",
+          pNode.id === actionObj.node.id
+            ? config.ring4HoverOpacity
+            : config.ring4DefaultOpacity
+        );
+        
+    });
+    wrapper
+      .selectAll(".nodes")
+      .select("circle")
+      .attr("stroke", d => d.id === actionObj.node.id ? config[theme].highlightColor : config[theme].levelCircles[d.Level].nodeStroke);
+  } else if (actionObj.action === global.MOUSE_EVENT_TYPE.HOVER) {
+    nodesHasring4.forEach(pNode => {
+      wrapper
+        .selectAll(`.pnode-${pNode.id}`)        
+        .style(
+          "opacity",
+          pNode.id === actionObj.node.id
+            ? config.ring4HoverOpacity
+            : config.ring4DefaultOpacity
+        );
+    });
+    wrapper
+      .selectAll(".nodes")
+      .select("circle")
+      .attr("stroke", d => d.id === actionObj.node.id ? config[theme].highlightColor : config[theme].levelCircles[d.Level].nodeStroke);
+  } else {
+    nodesHasring4.forEach(pNode => {
+      wrapper
+        .selectAll(`.pnode-${pNode.id}`)
+        .style("opacity", config.ring4DefaultOpacity);
+    });
+    wrapper
+      .selectAll(".nodes")
+      .select("circle")
+      .attr("stroke", d => d.searched ? config[theme].highlightColor : config[theme].levelCircles[d.Level].nodeStroke);
+  }
 };
 
-export const updateLinks = (wrapper, config, theme = "dark", extended = true) => {
+export const updateLinks = (
+  wrapper,
+  node,
+  config,
+  theme = "dark",
+  extended = true
+) => {
   const ring4Level = config.levelCounts - 1;
   wrapper
     .selectAll(".links")
     .attr("d", d => `M${d.source.x} ${d.source.y}L${d.target.x} ${d.target.y}`)
     .style("stroke", config[theme].linkColor)
-    // .attr("stroke-width", config.linethickness)
+    .style("stroke-width", config.lineThickness)
     .style("opacity", d =>
-      d.source.Level === ring4Level ? extended ? config.ring4DefaultOpacity : 0 : 1
+      d.source.Level === ring4Level ? config.ring4DefaultOpacity : 1
     );
+  if (extended) {
+    wrapper.selectAll(".links").style("visibility", "visible");
+  } else {
+    wrapper
+      .selectAll(".links")
+      .style("visibility", d =>
+        d.source.Level === ring4Level || d.target.Level === ring4Level
+          ? "hidden"
+          : "visible"
+      );
+  }
+
+  if (!node) return;
+  wrapper
+    .selectAll(".links")
+    .style("stroke", d =>
+      d.node1 === node.id || d.node2 === node.id
+        ? config[theme].linkHighlightColor
+        : config[theme].linkColor
+    )
+    .style("stroke-width", d =>
+      d.node1 === node.id || d.node2 === node.id
+        ? config.lineThickness * 2
+        : config.lineThickness
+    )
+    .style("opacity", d => {
+      if (d.source.Level === ring4Level) {
+        if (d.node1 === node.id || d.node2 === node.id) {
+          return config.ring4HoverOpacity;
+        }
+        return config.ring4DefaultOpacity;
+      }
+      return 1;
+    });
 };

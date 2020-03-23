@@ -14,6 +14,7 @@ const useStyles = makeStyles(theme => ({
     position: "absolute",
     opacity: 0.8,
     top: theme.spacing(2),
+    right: theme.spacing(2),
     padding: "2px 4px",
     display: "flex",
     alignItems: "center",

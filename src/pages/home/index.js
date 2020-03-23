@@ -82,7 +82,7 @@ function HomePage() {
           dark: {
             linkColor: "#888",
             highlightColor: "white",
-            linkHighlightColor: "#888",
+            linkHighlightColor: "#aaa",
             linkEffectColor: "white",
             backgroundColor: "#131f26",
             nodeTextColor: "white",
@@ -123,7 +123,7 @@ function HomePage() {
           white: {
             linkColor: "#888",
             highlightColor: "#111177",
-            linkHighlightColor: "#888",
+            linkHighlightColor: "#aaa",
             linkEffectColor: "#553377",
             backgroundColor: "fff",
             nodeTextColor: "black",
