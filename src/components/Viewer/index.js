@@ -151,7 +151,7 @@ export const Viewer = ({ data, width, height, config }) => {
       })
       .attr("fill", d => d.fill)
       .attr("stroke", d => d.stroke)
-      .attr("stroke-width", config.thickness)
+      .attr("stroke-width", config.nodeThickness)
       .style("opacity", config[theme].fillOpacity)
       .lower();
 
@@ -169,7 +169,7 @@ export const Viewer = ({ data, width, height, config }) => {
     }
     addNodesOfRing4(nodesWrapper, nodes, links, config, levelInfos.current);
     addLinks(linksWrapper, links, config);
-  }, []);
+  }, [theme]);
 
   React.useEffect(() => {
     const ring4Level = config.levelCounts - 1;
@@ -254,7 +254,7 @@ export const Viewer = ({ data, width, height, config }) => {
           linksWrapper
             .select(`.link-${link.source.id}-${link.target.id}`)
             .style("stroke", config[theme].linkHighlightColor)
-            .attr("stroke-width", config.thickness * 3)
+            .attr("stroke-width", config.lineThickness)
             .style(
               "opacity",
               link.source.Level === ring4Level ? config.ring4HoverOpacity : 1
@@ -262,15 +262,15 @@ export const Viewer = ({ data, width, height, config }) => {
         });
     }
     function nodeMouseOver(d) {
-      tooltipContentRef.current = d;
-      clearTimeout(timeoutRef.current);
-      setTooltipAnchorEl(d3.event.currentTarget);
-      setTooltipOpen(true);
+      // tooltipContentRef.current = d;
+      // clearTimeout(timeoutRef.current);
+      // setTooltipAnchorEl(d3.event.currentTarget);
+      // setTooltipOpen(true);
 
       d3.select(this)
         .select("circle")
         .style("stroke", config[theme].highlightColor)
-        .attr("stroke-width", config.thickness * 2);
+        .attr("stroke-width", config.nodeThickness);
       
       nodesWrapper.selectAll(`.pnode-${d.id}`).style("opacity", extendedView ? config.ring4HoverOpacity : 0);
       links
@@ -279,7 +279,7 @@ export const Viewer = ({ data, width, height, config }) => {
           linksWrapper
             .select(`.link-${link.source.id}-${link.target.id}`)
             .style("stroke", config[theme].linkHighlightColor)
-            .attr("stroke-width", config.thickness * 3)
+            .attr("stroke-width", config.lineThickness * 2)
             .style(
               "opacity",
               link.source.Level === ring4Level ? extendedView ? config.ring4HoverOpacity : 0 : 1
@@ -296,7 +296,7 @@ export const Viewer = ({ data, width, height, config }) => {
           .append("path")
           .attr("class", `effect-line level${i}-paths`)
           .style("stroke", config[theme].linkEffectColor)
-          .style("stroke-width", config.thickness)
+          .style("stroke-width", config.lineThickness * 2)
           .attr(
             "d",
             d => `M${d.source.x} ${d.source.y}L ${d.source.x} ${d.source.y}`
@@ -311,14 +311,14 @@ export const Viewer = ({ data, width, height, config }) => {
       });
     }
     function nodeMouseOut(d) {
-      timeoutRef.current = setTimeout(() => {
-        setTooltipOpen(false);
-        setTooltipAnchorEl(null);
-      }, config.duration);
+      // timeoutRef.current = setTimeout(() => {
+      //   setTooltipOpen(false);
+      //   setTooltipAnchorEl(null);
+      // }, config.duration);
       d3.select(this)
         .select("circle")
         .style("stroke", config[theme].levelCircles[d.Level].nodeStroke)
-        .attr("stroke-width", config.thickness);
+        .attr("stroke-width", config.nodeThickness);
       nodesWrapper.selectAll(`.pnode-${d.id}`).style("opacity", extendedView ? config.ring4DefaultOpacity : 0);
       linksWrapper.selectAll(".effect-line").remove();
       links
@@ -327,7 +327,7 @@ export const Viewer = ({ data, width, height, config }) => {
           linksWrapper
             .select(`.link-${link.source.id}-${link.target.id}`)
             .style("stroke", config[theme].linkHighlightColor)
-            .attr("stroke-width", config.thickness)
+            .attr("stroke-width", config.lineThickness)
             .style(
               "opacity",
               link.source.Level === ring4Level ? extendedView ? config.ring4DefaultOpacity : 0 : 1

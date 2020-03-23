@@ -70,7 +70,8 @@ function HomePage() {
         config={{
           duration: 600,
           nodeSize: 10,
-          thickness: 2,
+          nodeThickness: 4,
+          lineThickness: 2,
           nodeSizeStep: 1,
           baseRadius: 15,
           levelCounts: 5,
@@ -121,33 +122,33 @@ function HomePage() {
           },
           white: {
             linkColor: "#888",
-            highlightColor: "blue",
+            highlightColor: "#111177",
             linkHighlightColor: "#888",
-            linkEffectColor: "black",
+            linkEffectColor: "#553377",
             backgroundColor: "fff",
             nodeTextColor: "black",
             fillOpacity: 0.8,
             levelCircles: [
               {
-                fill: global.color.MEDIUM.light,
+                fill: "white",
                 nodeColor: "white",
                 nodeStroke: global.color.MEDIUM.main,
                 stroke: global.color.MEDIUM.main
               },
               {
-                fill: global.color.CRITICAL.light,
+                fill: "white",
                 nodeColor: "white",
                 nodeStroke: global.color.CRITICAL.main,
                 stroke: global.color.CRITICAL.main
               },
               {
-                fill: global.color.HIGH.light,
+                fill: "white",
                 nodeColor: "white",
                 nodeStroke: global.color.HIGH.main,
                 stroke: global.color.HIGH.main
               },
               {
-                fill: global.color.LOW.light,
+                fill: "white",
                 nodeColor: "white",
                 nodeStroke: global.color.LOW.main,
                 stroke: global.color.LOW.main

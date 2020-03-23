@@ -197,7 +197,7 @@ export const addNodes = (
   nodesG
     .append("circle")
     .attr("fill", config[theme].levelCircles[levelNo].nodeColor)
-    .attr("stroke-width", config.thickness)
+    .attr("stroke-width", config.nodeThickness)
     .attr("stroke", config[theme].levelCircles[levelNo].nodeStroke)
     .style("cursor", "pointer")
     .style("opacity", showType === "circle" ? 1 : 0)
@@ -278,7 +278,7 @@ export const addLinks = (wrapper, links, config, theme = "dark") => {
     .style("pointer-events", "none")
     .attr("d", d => `M${d.source.x} ${d.source.y}L${d.target.x} ${d.target.y}`)
     .style("stroke", config[theme].linkColor)
-    .attr("stroke-width", config.thickness)
+    .attr("stroke-width", config.lineThickness)
     .style("opacity", d =>
       d.source.Level === ring4Level ? config.ring4DefaultOpacity : 1
     );
@@ -360,11 +360,9 @@ export const updateLinks = (wrapper, config, theme = "dark", extended = true) =>
   const ring4Level = config.levelCounts - 1;
   wrapper
     .selectAll(".links")
-    // .attr("class", d => `links link-${d.source.id}-${d.target.id} ${d.source.Level === ring4Level ? `ring4-link-${d.source.id}` : ''}`)
-    .style("pointer-events", "none")
     .attr("d", d => `M${d.source.x} ${d.source.y}L${d.target.x} ${d.target.y}`)
     .style("stroke", config[theme].linkColor)
-    .attr("stroke-width", config.thickness)
+    // .attr("stroke-width", config.linethickness)
     .style("opacity", d =>
       d.source.Level === ring4Level ? extended ? config.ring4DefaultOpacity : 0 : 1
     );
