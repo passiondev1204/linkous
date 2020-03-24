@@ -2,15 +2,19 @@ import React from "react";
 import * as d3 from "d3";
 
 import { Wrapper } from "../Wrapper";
+import { ExpandableIcon } from "../ExpandIcon";
 import {
   makeStyles,
   Popper,
   Menu,
   MenuItem,
   Fade,
+  Slide,
+  Collapse,
   Paper,
   Typography,
   FormControlLabel,
+  IconButton,
   Switch
 } from "@material-ui/core";
 import { ToggleButton, ToggleButtonGroup } from "@material-ui/lab";
@@ -34,6 +38,8 @@ import {
   updateLinks,
   centeringPaths
 } from "./functions";
+
+const detailInfoHeight = 150;
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -69,13 +75,20 @@ const useStyles = makeStyles(theme => ({
     display: "flex",
     justifyContent: "center"
   },
-  menuItem: {
-    // '&:focus': {
-    //   backgroundColor: theme.palette.primary.main,
-    //   '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
-    //     color: theme.palette.common.white,
-    //   },
-    // }
+  expandableIconButton: {
+    position: "absolute",
+    top: "50%",
+    right: 0,
+    color: "white"
+  },
+  detailInfoPaper: {
+    position: "absolute",
+    top: `calc(50% - ${detailInfoHeight / 2}px)`,
+    right: 4,
+    height: detailInfoHeight,
+    padding: `${theme.spacing(2)}px ${theme.spacing(2)}px ${theme.spacing(
+      2
+    )}px ${theme.spacing(1)}px`
   },
   checkItem: {
     marginRight: theme.spacing(2)
@@ -96,6 +109,8 @@ export const Viewer = ({ data, width, height, config }) => {
   const [showType, setShowType] = React.useState("circle");
   const [extendedView, setExtendedView] = React.useState(true);
   const [magnifyMode, setMagnifyMode] = React.useState(false);
+  const [showDetail, setShowDetail] = React.useState(null);
+  const [detailInfo, setDetailInfo] = React.useState(null);
   const [contextPosition, setContextPosition] = React.useState({
     x: null,
     y: null
@@ -121,15 +136,26 @@ export const Viewer = ({ data, width, height, config }) => {
   };
 
   const onSearch = searchText => {
-    console.log(searchText, "searcText");
+    const filtered = utils.filteredList(
+      data.nodes.map(node => ({
+        id: node.id,
+        name: node.name,
+        IP: node.IP,
+        Mask: node.Mask,
+        RS: node.RS,
+        Level: node.Level
+      })),
+      searchText
+    );
+
     nodes.forEach(node => {
-      if(searchText && node.name.toLowerCase().includes(searchText.toLowerCase())) {
+      if (searchText && filtered.map(d => d.id).includes(node.id)) {
         node.searched = true;
-      }else {
+      } else {
         node.searched = false;
       }
-    })
-    
+    });
+
     const graph = d3.select(".graph");
     const nodesWrapper = graph.select(".nodes-wrapper");
     updateNodes(
@@ -284,7 +310,12 @@ export const Viewer = ({ data, width, height, config }) => {
     });
 
     function nodeClick(d) {
+      d3.event.stopPropagation();
+      setDetailInfo(d);
+      setShowDetail(true);
+
       if (!d.hasRing4 || !extendedView) return;
+
       openedNode.current = d;
       updateNodes(
         nodesWrapper,
@@ -437,7 +468,63 @@ export const Viewer = ({ data, width, height, config }) => {
             Ring 3: {data.nodes.filter(d => d.Level === 3).length}
           </Typography>
         </Paper>
-        <SearchInputBox onSearch={onSearch} />
+        <SearchInputBox
+          onSearch={onSearch}
+          searchList={data.nodes.map(node => ({
+            name: node.name,
+            IP: node.IP,
+            Mask: node.Mask,
+            RS: node.RS,
+            Level: node.Level
+          }))}
+        />
+        {showDetail !== null && (
+          <IconButton
+            className={classes.expandableIconButton}
+            size="small"
+            onClick={() => setShowDetail(!showDetail)}
+          >
+            <ExpandableIcon expanded={showDetail} />
+          </IconButton>
+        )}
+        <Slide direction="left" in={showDetail} mountOnEnter unmountOnExit>
+          <Paper className={classes.detailInfoPaper}>
+            <Wrapper height="auto" align="center">
+              <IconButton size="small" onClick={() => setShowDetail(!showDetail)}>
+                <ExpandableIcon expanded={showDetail} />
+              </IconButton>
+              {detailInfo && (
+              <Wrapper height="auto" pl={8}>
+                <Wrapper
+                  height="auto"
+                  direction="column"
+                  className={classes.titleSection}
+                >
+                  <span>Name</span>
+                  <span>IP</span>
+                  <span>Mask</span>
+                  <span>RS</span>
+                  <span>RCE</span>
+                  <span>LPE</span>
+                  <span>Config</span>
+                </Wrapper>
+                <Wrapper
+                  height="auto"
+                  direction="column"
+                  className={classes.descSection}
+                >
+                  <span>{detailInfo.name}</span>
+                  <span>{detailInfo.IP}</span>
+                  <span>{detailInfo.Mask}</span>
+                  <span>{detailInfo.RS}</span>
+                  <span>{detailInfo.Conditions[0].RCE}</span>
+                  <span>{detailInfo.Conditions[0].LPE}</span>
+                  <span>{detailInfo.Conditions[0].Config}</span>
+                </Wrapper>
+              </Wrapper>)}
+            </Wrapper>
+          </Paper>
+        </Slide>
       </div>
       {!magnifyMode && (
         <Popper

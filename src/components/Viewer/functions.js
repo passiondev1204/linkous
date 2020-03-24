@@ -454,7 +454,8 @@ export const updateNodes = (
         d.searched
           ? config[theme].highlightColor
           : config[theme].levelCircles[d.Level].nodeStroke
-      );
+      )
+      .attr("stroke-width", d => d.searched ? config.lineThickness * 5 : config.lineThickness)
   }
 };
 

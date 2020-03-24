@@ -17,5 +17,16 @@ export default {
     };
   },
   randomRange: (min, max) => Math.random() * (max - min) + min,
-  clone: val => JSON.parse(JSON.stringify(val))
+  clone: val => JSON.parse(JSON.stringify(val)),
+  filteredList:(lists, search) => {
+    let filtered_list = [];
+    lists.forEach(item => {
+      const subMatches = Object.values(item).filter(val => val.toString().toLowerCase().includes(search.toLowerCase()));
+      if(subMatches.length > 0) {        
+        filtered_list.push(item);
+      }
+    })    
+    filtered_list = [...new Set(filtered_list)];
+    return filtered_list;
+  }
 };
