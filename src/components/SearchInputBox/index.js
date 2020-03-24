@@ -92,6 +92,10 @@ export const SearchInputBox = props => {
         value={searchText}
         clearOnEscape
         disableClearable
+        onChange={(evt, val) => {          
+          onSearch(val);
+          setSearchText("");
+        }}
         onInputChange={(evt, val, reason) => setSearchText(val)}
         options={utils.filteredList(searchList, searchText).map(item => item.IP)}
         renderInput={params => (
@@ -101,6 +105,7 @@ export const SearchInputBox = props => {
               if (evt.key === "Enter") {
                 evt.preventDefault();
                 onSearch(searchText);
+                setSearchText("");                
               }
             }}
             {...params}

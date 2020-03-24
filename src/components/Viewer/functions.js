@@ -336,7 +336,7 @@ export const updateNodes = (
 ) => {
   const ring4Level = config.levelCounts - 1;
   const nodesHasring4 = nodesHasRing4(nodes, links);
-
+  
   if (showType === "circle") {
     wrapper
       .selectAll(".nodes")
@@ -376,7 +376,7 @@ export const updateNodes = (
       );
   }
 
-  if (actionObj.action === global.MOUSE_EVENT_TYPE.CLICK) {
+  if (actionObj.action === global.MOUSE_EVENT_TYPE.EXPAND) {
     nodesHasring4.forEach(pNode => {
       let childNodes = links
         .filter(
@@ -413,50 +413,17 @@ export const updateNodes = (
             ? config.ring4HoverOpacity
             : config.ring4DefaultOpacity
         );
-    });
-    wrapper
-      .selectAll(".nodes")
-      .select("circle")
-      .attr("stroke", d =>
-        d.id === actionObj.node.id
-          ? config[theme].highlightColor
-          : config[theme].levelCircles[d.Level].nodeStroke
-      );
-  } else if (actionObj.action === global.MOUSE_EVENT_TYPE.HOVER) {
-    nodesHasring4.forEach(pNode => {
-      wrapper
-        .selectAll(`.pnode-${pNode.id}`)
-        .style(
-          "opacity",
-          pNode.id === actionObj.node.id
-            ? config.ring4HoverOpacity
-            : config.ring4DefaultOpacity
-        );
-    });
-    wrapper
-      .selectAll(".nodes")
-      .select("circle")
-      .attr("stroke", d =>
-        d.id === actionObj.node.id
-          ? config[theme].highlightColor
-          : config[theme].levelCircles[d.Level].nodeStroke
-      );
-  } else {
-    nodesHasring4.forEach(pNode => {
-      wrapper
-        .selectAll(`.pnode-${pNode.id}`)
-        .style("opacity", config.ring4DefaultOpacity);
-    });
-    wrapper
-      .selectAll(".nodes")
-      .select("circle")
-      .attr("stroke", d =>
-        d.searched
-          ? config[theme].highlightColor
-          : config[theme].levelCircles[d.Level].nodeStroke
+    });    
+  } 
+  wrapper
+    .selectAll(".nodes")
+    .select("circle")
+    .attr("stroke", d => d.selected
+        ? config[theme].highlightColor
+        : config[theme].levelCircles[d.Level].nodeStroke
       )
-      .attr("stroke-width", d => d.searched ? config.lineThickness * 5 : config.lineThickness)
-  }
+    .attr("stroke-width", d => d.selected ? config.lineThickness * 5 : config.lineThickness)
+  
 };
 
 export const updateLinks = (

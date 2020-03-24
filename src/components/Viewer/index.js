@@ -1,6 +1,6 @@
 import React from "react";
 import * as d3 from "d3";
-
+import clsx from 'clsx';
 import { Wrapper } from "../Wrapper";
 import { ExpandableIcon } from "../ExpandIcon";
 import {
@@ -10,7 +10,6 @@ import {
   MenuItem,
   Fade,
   Slide,
-  Collapse,
   Paper,
   Typography,
   FormControlLabel,
@@ -39,7 +38,7 @@ import {
   centeringPaths
 } from "./functions";
 
-const detailInfoHeight = 150;
+const detailInfoHeight = 250, detailInfoWidth = 260, detailInfoMinWidth = 20;
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -84,11 +83,40 @@ const useStyles = makeStyles(theme => ({
   detailInfoPaper: {
     position: "absolute",
     top: `calc(50% - ${detailInfoHeight / 2}px)`,
+    flexShrink: 0,
     right: 4,
     height: detailInfoHeight,
+    opacity: 0.9,
     padding: `${theme.spacing(2)}px ${theme.spacing(2)}px ${theme.spacing(
       2
     )}px ${theme.spacing(1)}px`
+  },
+  detainInfoOpen: {
+    width: detailInfoWidth,
+    transition: theme.transitions.create("width", {
+      easing: theme.transitions.easing.sharp,
+      duration: 150
+    }),
+  },
+  detainInfoClose: {
+    width: detailInfoMinWidth,
+    transition: theme.transitions.create("width", {
+      easing: theme.transitions.easing.sharp,      
+      duration: 150
+    }),
+    overflowX: "hidden",
+  },
+  detailInfoTextOpen: {
+    color: "rgba(0, 0, 0, 1)",
+    transition: theme.transitions.create("color", {      
+      duration: 550
+    }),
+  },
+  detailInfoTextClose: {
+    color: "rgba(0, 0, 0, 0)",
+    transition: theme.transitions.create("color", {      
+      duration: 150
+    }),
   },
   checkItem: {
     marginRight: theme.spacing(2)
@@ -101,7 +129,7 @@ export const Viewer = ({ data, width, height, config }) => {
   const timeoutRef = React.useRef();
   const tooltipContentRef = React.useRef();
   const levelInfos = React.useRef([]);
-  const openedNode = React.useRef(null);
+  const clickedNode = React.useRef(null);
 
   const [tooltipAnchorEl, setTooltipAnchorEl] = React.useState(null);
   const [tooltipOpen, setTooltipOpen] = React.useState(false);
@@ -146,15 +174,18 @@ export const Viewer = ({ data, width, height, config }) => {
         Level: node.Level
       })),
       searchText
-    );
-
+    )[0];    
+    
     nodes.forEach(node => {
-      if (searchText && filtered.map(d => d.id).includes(node.id)) {
-        node.searched = true;
+      if (searchText && filtered.id === node.id) {
+        node.selected = true;
       } else {
-        node.searched = false;
+        node.selected = false;
       }
     });
+
+    setShowDetail(true);
+    setDetailInfo(nodes.filter(node => node.id === filtered.id)[0]);
 
     const graph = d3.select(".graph");
     const nodesWrapper = graph.select(".nodes-wrapper");
@@ -245,7 +276,7 @@ export const Viewer = ({ data, width, height, config }) => {
     const nodesWrapper = graph.select(".nodes-wrapper");
     const linksWrapper = graph.select(".links-wrapper");
 
-    if (openedNode.current) {
+    if (clickedNode.current) {
       updateNodes(
         nodesWrapper,
         nodes,
@@ -256,8 +287,8 @@ export const Viewer = ({ data, width, height, config }) => {
         theme,
         extendedView,
         {
-          action: global.MOUSE_EVENT_TYPE.CLICK,
-          node: openedNode.current
+          action: clickedNode.current.hasRing4 ? global.MOUSE_EVENT_TYPE.EXPAND : global.MOUSE_EVENT_TYPE.CLICK,
+          node: clickedNode.current
         }
       );
     } else {
@@ -313,10 +344,9 @@ export const Viewer = ({ data, width, height, config }) => {
       d3.event.stopPropagation();
       setDetailInfo(d);
       setShowDetail(true);
-
-      if (!d.hasRing4 || !extendedView) return;
-
-      openedNode.current = d;
+      nodes.forEach(node => {node.selected = false});
+      d.selected = true;
+      clickedNode.current = d;
       updateNodes(
         nodesWrapper,
         nodes,
@@ -327,7 +357,7 @@ export const Viewer = ({ data, width, height, config }) => {
         theme,
         extendedView,
         {
-          action: global.MOUSE_EVENT_TYPE.CLICK,
+          action: !d.hasRing4 || !extendedView ? global.MOUSE_EVENT_TYPE.CLICK : global.MOUSE_EVENT_TYPE.EXPAND,
           node: d
         }
       );
@@ -339,21 +369,6 @@ export const Viewer = ({ data, width, height, config }) => {
       clearTimeout(timeoutRef.current);
       setTooltipAnchorEl(d3.event.currentTarget);
       setTooltipOpen(true);
-
-      updateNodes(
-        nodesWrapper,
-        nodes,
-        links,
-        config,
-        levelInfos.current,
-        showType,
-        theme,
-        extendedView,
-        {
-          action: global.MOUSE_EVENT_TYPE.HOVER,
-          node: d
-        }
-      );
 
       updateLinks(linksWrapper, d, config, theme, extendedView);
 
@@ -478,31 +493,34 @@ export const Viewer = ({ data, width, height, config }) => {
             Level: node.Level
           }))}
         />
-        {showDetail !== null && (
-          <IconButton
-            className={classes.expandableIconButton}
-            size="small"
-            onClick={() => setShowDetail(!showDetail)}
-          >
-            <ExpandableIcon expanded={showDetail} />
-          </IconButton>
-        )}
-        <Slide direction="left" in={showDetail} mountOnEnter unmountOnExit>
-          <Paper className={classes.detailInfoPaper}>
-            <Wrapper height="auto" align="center">
-              <IconButton size="small" onClick={() => setShowDetail(!showDetail)}>
-                <ExpandableIcon expanded={showDetail} />
-              </IconButton>
-              {detailInfo && (
-              <Wrapper height="auto" pl={8}>
+        {detailInfo !== null && <Paper className={clsx(classes.detailInfoPaper, {
+          [classes.detainInfoOpen]: showDetail,
+          [classes.detainInfoClose]: !showDetail
+        })}>
+          <Wrapper align="center">
+            <IconButton
+              size="small"
+              onClick={() => setShowDetail(!showDetail)}
+            >
+              <ExpandableIcon expanded={showDetail} />
+            </IconButton>
+            {detailInfo && (
+              <Wrapper pl={8} className={clsx({
+                [classes.detailInfoTextOpen]: showDetail,
+                [classes.detailInfoTextClose]: !showDetail,
+              })}>
                 <Wrapper
-                  height="auto"
                   direction="column"
                   className={classes.titleSection}
                 >
                   <span>Name</span>
                   <span>IP</span>
                   <span>Mask</span>
+                  <span>Level</span>
+                  <span>AV</span>
+                  <span>OS</span>
+                  <span>Icon</span>
+                  <span>Browser</span>                  
                   <span>RS</span>
                   <span>RCE</span>
                   <span>LPE</span>
@@ -516,15 +534,20 @@ export const Viewer = ({ data, width, height, config }) => {
                   <span>{detailInfo.name}</span>
                   <span>{detailInfo.IP}</span>
                   <span>{detailInfo.Mask}</span>
+                  <span>{detailInfo.Level}</span>
+                  <span>{detailInfo.Software[0].AV}</span>
+                  <span>{detailInfo.Software[0].OS}</span>
+                  <span>{detailInfo.Software[0].Icon}</span>
+                  <span>{detailInfo.Software[0].Browser}</span>
                   <span>{detailInfo.RS}</span>
                   <span>{detailInfo.Conditions[0].RCE}</span>
                   <span>{detailInfo.Conditions[0].LPE}</span>
                   <span>{detailInfo.Conditions[0].Config}</span>
                 </Wrapper>
-              </Wrapper>)}
-            </Wrapper>
-          </Paper>
-        </Slide>
+              </Wrapper>
+            )}
+          </Wrapper>
+        </Paper>}
       </div>
       {!magnifyMode && (
         <Popper

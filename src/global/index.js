@@ -1,6 +1,7 @@
 export default {
   MOUSE_EVENT_TYPE: {
     CLICK: 'click',
+    EXPAND: 'expand',
     HOVER: 'hover',
     OUT: 'none',
     NONE: 'none'

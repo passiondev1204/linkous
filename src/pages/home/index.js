@@ -87,7 +87,7 @@ function HomePage() {
           },
           dark: {
             linkColor: "#888",
-            highlightColor: "white",
+            highlightColor: "#111177",
             linkHighlightColor: "#aaa",
             linkEffectColor: "white",
             backgroundColor: "#131f26",
