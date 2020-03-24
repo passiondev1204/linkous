@@ -147,6 +147,39 @@ export const hasRing4Nodes = (node, links, level4 = 4) =>
 export const nodesHasRing4 = (nodes, links) =>
   nodes.filter(node => hasRing4Nodes(node, links));
 
+export const donutCircle = (nodeGroup, node, config) => {
+  const conditions = node.Conditions[0];
+  let counts =
+    Object.values(conditions).filter(con => con.toLowerCase() === "true")
+      .length || 0;
+  let colors = { NONE: config.Conditions["NONE"] },
+    data = {};
+  Object.entries(conditions).forEach(con => {
+    if (con[1].toLowerCase() === "true") {
+      colors[con[0]] = config.Conditions[con[0]];
+      data[con[0]] = 1 / counts;
+    }
+  });
+  if (counts === 0) {
+    data = { NONE: 1 };
+  }
+  
+  const pie = d3.pie().value(d => d.value);
+  const data_ready = pie(d3.entries(data));
+  const arc = d3
+    .arc()
+    .innerRadius(node.r * 1.05)
+    .outerRadius(node.r * 1.35)
+    .padAngle(counts > 1 ? 0.05 : 0);
+  nodeGroup
+    .selectAll('slices')
+    .data(data_ready)
+    .enter()
+    .append("path")
+    .attr("d", arc)
+    .attr("fill", d => colors[d.data.key]);
+};
+
 export const addNodes = (
   wrapper,
   cx,
@@ -193,10 +226,11 @@ export const addNodes = (
       d.r = config.nodeSize + links_count * config.nodeSizeStep;
       return `translate(${d.x}, ${d.y})`;
     });
+  
   nodesG
     .append("circle")
     .attr("fill", config[theme].levelCircles[levelNo].nodeColor)
-    .attr("stroke-width", config.nodeThickness)
+    .attr("stroke-width", config.lineThickness)
     .attr("stroke", config[theme].levelCircles[levelNo].nodeStroke)
     .style("cursor", "pointer")
     .style("opacity", showType === "circle" ? 1 : 0)
@@ -226,6 +260,12 @@ export const addNodes = (
     .raise();
   wrapper.raise();
 };
+
+export const addDonutCircles = (wrapper, nodes, config) => {
+  wrapper.selectAll(".nodes").each(function(d) {
+    donutCircle(d3.select(this), d, config);
+  });
+}
 
 export const addNodesOfRing4 = (
   wrapper,
@@ -336,7 +376,7 @@ export const updateNodes = (
       );
   }
 
-  if (actionObj.action === global.MOUSE_EVENT_TYPE.CLICK) {    
+  if (actionObj.action === global.MOUSE_EVENT_TYPE.CLICK) {
     nodesHasring4.forEach(pNode => {
       let childNodes = links
         .filter(
@@ -373,16 +413,19 @@ export const updateNodes = (
             ? config.ring4HoverOpacity
             : config.ring4DefaultOpacity
         );
-        
     });
     wrapper
       .selectAll(".nodes")
       .select("circle")
-      .attr("stroke", d => d.id === actionObj.node.id ? config[theme].highlightColor : config[theme].levelCircles[d.Level].nodeStroke);
+      .attr("stroke", d =>
+        d.id === actionObj.node.id
+          ? config[theme].highlightColor
+          : config[theme].levelCircles[d.Level].nodeStroke
+      );
   } else if (actionObj.action === global.MOUSE_EVENT_TYPE.HOVER) {
     nodesHasring4.forEach(pNode => {
       wrapper
-        .selectAll(`.pnode-${pNode.id}`)        
+        .selectAll(`.pnode-${pNode.id}`)
         .style(
           "opacity",
           pNode.id === actionObj.node.id
@@ -393,7 +436,11 @@ export const updateNodes = (
     wrapper
       .selectAll(".nodes")
       .select("circle")
-      .attr("stroke", d => d.id === actionObj.node.id ? config[theme].highlightColor : config[theme].levelCircles[d.Level].nodeStroke);
+      .attr("stroke", d =>
+        d.id === actionObj.node.id
+          ? config[theme].highlightColor
+          : config[theme].levelCircles[d.Level].nodeStroke
+      );
   } else {
     nodesHasring4.forEach(pNode => {
       wrapper
@@ -403,7 +450,11 @@ export const updateNodes = (
     wrapper
       .selectAll(".nodes")
       .select("circle")
-      .attr("stroke", d => d.searched ? config[theme].highlightColor : config[theme].levelCircles[d.Level].nodeStroke);
+      .attr("stroke", d =>
+        d.searched
+          ? config[theme].highlightColor
+          : config[theme].levelCircles[d.Level].nodeStroke
+      );
   }
 };
 

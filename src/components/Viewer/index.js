@@ -25,6 +25,7 @@ import {
   zoom,
   fisheye,
   maxCountsOfLevel,
+  addDonutCircles,
   addNodes,
   addNodesOfRing4,
   addLinks,
@@ -207,6 +208,7 @@ export const Viewer = ({ data, width, height, config }) => {
       );
     }
     addNodesOfRing4(nodesWrapper, nodes, links, config, levelInfos.current);
+    addDonutCircles(nodesWrapper, nodes, config);
     addLinks(linksWrapper, links, config);
   }, [theme]);
 

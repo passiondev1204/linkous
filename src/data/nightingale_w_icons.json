@@ -277,7 +277,7 @@
 			"Conditions": [{
 				"RCE": "True",
 				"LPE": "True",
-				"Config": "False"
+				"Config": "True"
 			}]
 		},
 		{

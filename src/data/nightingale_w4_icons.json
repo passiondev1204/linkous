@@ -20,9 +20,9 @@
 				]
 			}],
 			"Conditions": [{
-				"RCE": "False",
-				"LPE": "False",
-				"Config": "False"
+				"RCE": "TRUE",
+				"LPE": "TRUE",
+				"Config": "TRUE"
 			}]
 		},
 		{
@@ -52,8 +52,8 @@
 				]
 			}],
 			"Conditions": [{
-				"RCE": "True",
-				"LPE": "True",
+				"RCE": "False",
+				"LPE": "False",
 				"Config": "False"
 			}]
 		},
@@ -85,7 +85,7 @@
 			}],
 			"Conditions": [{
 				"RCE": "True",
-				"LPE": "True",
+				"LPE": "False",
 				"Config": "False"
 			}]
 		},

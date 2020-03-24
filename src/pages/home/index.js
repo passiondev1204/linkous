@@ -79,6 +79,12 @@ function HomePage() {
           ring4HoverOpacity: 0.5,
           defaultFontSize: 13,
           lensBorderColor: "grey",
+          Conditions: {
+            NONE: "#cccccc",
+            RCE: "#ff0000",
+            LPE: "#7711aa",
+            Config: "#224433",
+          },
           dark: {
             linkColor: "#888",
             highlightColor: "white",
@@ -91,31 +97,31 @@ function HomePage() {
               {
                 fill: global.color.MEDIUM.light,
                 nodeColor: global.color.MEDIUM.main,
-                nodeStroke: global.color.MEDIUM.light,
+                nodeStroke: "white",
                 stroke: global.color.MEDIUM.main
               },
               {
                 fill: global.color.CRITICAL.light,
                 nodeColor: global.color.CRITICAL.main,
-                nodeStroke: global.color.CRITICAL.light,
+                nodeStroke: "white",
                 stroke: global.color.CRITICAL.main
               },
               {
                 fill: global.color.HIGH.light,
                 nodeColor: global.color.HIGH.main,
-                nodeStroke: global.color.HIGH.light,
+                nodeStroke: "white",
                 stroke: global.color.HIGH.main
               },
               {
                 fill: global.color.LOW.light,
                 nodeColor: global.color.LOW.main,
-                nodeStroke: global.color.LOW.light,
+                nodeStroke: "white",
                 stroke: global.color.LOW.main
               },
               {
                 fill: "transparent",
                 nodeColor: "rgb(255, 0, 122)",
-                nodeStroke: "rgb(255, 0, 255, 0.5)",
+                nodeStroke: "white",
                 stroke: "none"
               }
             ]
@@ -130,27 +136,27 @@ function HomePage() {
             fillOpacity: 0.8,
             levelCircles: [
               {
-                fill: "white",
-                nodeColor: "white",
-                nodeStroke: global.color.MEDIUM.main,
+                fill: global.color.MEDIUM.light,
+                nodeColor: global.color.MEDIUM.main,
+                nodeStroke: "white",
                 stroke: global.color.MEDIUM.main
               },
               {
-                fill: "white",
-                nodeColor: "white",
-                nodeStroke: global.color.CRITICAL.main,
+                fill: global.color.CRITICAL.light,
+                nodeColor: global.color.CRITICAL.main,
+                nodeStroke: "white",
                 stroke: global.color.CRITICAL.main
               },
               {
-                fill: "white",
-                nodeColor: "white",
-                nodeStroke: global.color.HIGH.main,
+                fill: global.color.HIGH.light,
+                nodeColor: global.color.HIGH.main,
+                nodeStroke: "white",
                 stroke: global.color.HIGH.main
               },
               {
-                fill: "white",
-                nodeColor: "white",
-                nodeStroke: global.color.LOW.main,
+                fill: global.color.LOW.light,
+                nodeColor: global.color.LOW.main,
+                nodeStroke: "white",
                 stroke: global.color.LOW.main
               },
               {
