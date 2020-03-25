@@ -163,7 +163,7 @@ export const donutCircle = (nodeGroup, node, config) => {
   if (counts === 0) {
     data = { NONE: 1 };
   }
-  
+
   const pie = d3.pie().value(d => d.value);
   const data_ready = pie(d3.entries(data));
   const arc = d3
@@ -172,7 +172,7 @@ export const donutCircle = (nodeGroup, node, config) => {
     .outerRadius(node.r * 1.35)
     .padAngle(counts > 1 ? 0.05 : 0);
   nodeGroup
-    .selectAll('slices')
+    .selectAll("slices")
     .data(data_ready)
     .enter()
     .append("path")
@@ -226,14 +226,14 @@ export const addNodes = (
       d.r = config.nodeSize + links_count * config.nodeSizeStep;
       return `translate(${d.x}, ${d.y})`;
     });
-  
+
   nodesG
     .append("circle")
     .attr("fill", config[theme].levelCircles[levelNo].nodeColor)
     .attr("stroke-width", config.lineThickness)
     .attr("stroke", config[theme].levelCircles[levelNo].nodeStroke)
     .style("cursor", "pointer")
-    .style("opacity", showType === "circle" ? 1 : 0)
+    .style("opacity", 1)
     .attr("r", d => d.r);
   nodesG
     .append("svg:image")
@@ -244,10 +244,10 @@ export const addNodes = (
       return require(`../../assets/icons/svg/${iconName}.svg`);
     })
     .style("opacity", showType === "icon" ? 1 : 0)
-    .attr("x", d => -d.r)
-    .attr("y", d => -d.r)
-    .attr("width", d => d.r * 2)
-    .attr("height", d => d.r * 2);
+    .attr("x", d => -d.r * 0.6)
+    .attr("y", d => -d.r * 0.6)
+    .attr("width", d => d.r * 1.2)
+    .attr("height", d => d.r * 1.2);
   nodesG
     .append("text")
     .attr("text-anchor", "middle")
@@ -265,7 +265,7 @@ export const addDonutCircles = (wrapper, nodes, config) => {
   wrapper.selectAll(".nodes").each(function(d) {
     donutCircle(d3.select(this), d, config);
   });
-}
+};
 
 export const addNodesOfRing4 = (
   wrapper,
@@ -336,28 +336,18 @@ export const updateNodes = (
 ) => {
   const ring4Level = config.levelCounts - 1;
   const nodesHasring4 = nodesHasRing4(nodes, links);
-  
-  if (showType === "circle") {
-    wrapper
-      .selectAll(".nodes")
-      .select("circle")
-      .attr("fill", d => config[theme].levelCircles[d.Level].nodeColor)
-      .attr("stroke", d => config[theme].levelCircles[d.Level].nodeStroke)
-      .style("opacity", 1);
-    wrapper
-      .selectAll(".nodes")
-      .select("image")
-      .style("opacity", 0);
-  } else {
-    wrapper
-      .selectAll(".nodes")
-      .select("circle")
-      .style("opacity", 0);
-    wrapper
-      .selectAll(".nodes")
-      .select("image")
-      .style("opacity", 1);
-  }
+
+  wrapper
+    .selectAll(".nodes")
+    .select("circle")
+    .attr("fill", d => config[theme].levelCircles[d.Level].nodeColor)
+    .attr("stroke", d => config[theme].levelCircles[d.Level].nodeStroke)
+    .style("opacity", 1);
+  wrapper
+    .selectAll(".nodes")
+    .select("image")
+    .style("opacity", showType === "icon" ? 1 : 0);
+
   wrapper
     .selectAll(".nodes")
     .select("text")
@@ -413,17 +403,19 @@ export const updateNodes = (
             ? config.ring4HoverOpacity
             : config.ring4DefaultOpacity
         );
-    });    
-  } 
+    });
+  }
   wrapper
     .selectAll(".nodes")
     .select("circle")
-    .attr("stroke", d => d.selected
+    .attr("stroke", d =>
+      d.selected
         ? config[theme].highlightColor
         : config[theme].levelCircles[d.Level].nodeStroke
-      )
-    .attr("stroke-width", d => d.selected ? config.lineThickness * 5 : config.lineThickness)
-  
+    )
+    .attr("stroke-width", d =>
+      d.selected ? config.lineThickness * 5 : config.lineThickness
+    );
 };
 
 export const updateLinks = (
@@ -431,7 +423,8 @@ export const updateLinks = (
   node,
   config,
   theme = "dark",
-  extended = true
+  extended = true,
+  allLineVisible = true
 ) => {
   const ring4Level = config.levelCounts - 1;
   wrapper
@@ -440,7 +433,7 @@ export const updateLinks = (
     .style("stroke", config[theme].linkColor)
     .style("stroke-width", config.lineThickness)
     .style("opacity", d =>
-      d.source.Level === ring4Level ? config.ring4DefaultOpacity : 1
+      allLineVisible ? d.source.Level === ring4Level ? config.ring4DefaultOpacity : 1 : 0
     );
   if (extended) {
     wrapper.selectAll(".links").style("visibility", "visible");
@@ -468,12 +461,17 @@ export const updateLinks = (
         : config.lineThickness
     )
     .style("opacity", d => {
-      if (d.source.Level === ring4Level) {
         if (d.node1 === node.id || d.node2 === node.id) {
-          return config.ring4HoverOpacity;
+          if (d.source.Level === ring4Level) {
+            return config.ring4HoverOpacity;
+          } 
+          return 1;          
+        } else {
+          if (d.source.Level === ring4Level) {
+            return allLineVisible ? config.ring4DefaultOpacity : 0;
+          } else {
+            return allLineVisible ? 1 : 0;
+          }
         }
-        return config.ring4DefaultOpacity;
-      }
-      return 1;
     });
 };

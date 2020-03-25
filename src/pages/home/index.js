@@ -69,7 +69,7 @@ function HomePage() {
         height={900}
         config={{
           duration: 600,
-          nodeSize: 10,
+          nodeSize: 15,
           nodeThickness: 4,
           lineThickness: 2,
           nodeSizeStep: 1,

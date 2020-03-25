@@ -136,6 +136,7 @@ export const Viewer = ({ data, width, height, config }) => {
   const [theme, setTheme] = React.useState("dark");
   const [showType, setShowType] = React.useState("circle");
   const [extendedView, setExtendedView] = React.useState(true);
+  const [allLineVisible, setAllLineVisible] = React.useState(false);
   const [magnifyMode, setMagnifyMode] = React.useState(false);
   const [showDetail, setShowDetail] = React.useState(null);
   const [detailInfo, setDetailInfo] = React.useState(null);
@@ -307,7 +308,7 @@ export const Viewer = ({ data, width, height, config }) => {
         }
       );
     }
-    updateLinks(linksWrapper, null, config, theme, extendedView);
+    updateLinks(linksWrapper, null, config, theme, extendedView, allLineVisible);
     const lens = graph.select(".lens").style("opacity", magnifyMode ? 1 : 0);
     nodesWrapper
       .selectAll(".nodes")
@@ -361,7 +362,7 @@ export const Viewer = ({ data, width, height, config }) => {
           node: d
         }
       );
-      updateLinks(linksWrapper, d, config, theme, extendedView);
+      updateLinks(linksWrapper, d, config, theme, extendedView, allLineVisible);
     }
     function nodeMouseOver(d) {
       d3.event.stopPropagation();
@@ -370,7 +371,7 @@ export const Viewer = ({ data, width, height, config }) => {
       setTooltipAnchorEl(d3.event.currentTarget);
       setTooltipOpen(true);
 
-      updateLinks(linksWrapper, d, config, theme, extendedView);
+      updateLinks(linksWrapper, d, config, theme, extendedView, allLineVisible);
 
       if (magnifyMode) return;
       let filteredPathArr = centeringPaths(d, config.levelCounts, links);
@@ -415,10 +416,10 @@ export const Viewer = ({ data, width, height, config }) => {
           node: null
         }
       );
-      updateLinks(linksWrapper, null, config, theme, extendedView);
+      updateLinks(linksWrapper, null, config, theme, extendedView, allLineVisible);
       linksWrapper.selectAll(".effect-line").remove();
     }
-  }, [config, width, height, showType, theme, extendedView, magnifyMode]);
+  }, [config, width, height, showType, theme, extendedView, magnifyMode, allLineVisible]);
   return (
     <>
       <div className={classes.svgContainer} onContextMenu={onContextMenu}>
@@ -469,6 +470,17 @@ export const Viewer = ({ data, width, height, config }) => {
               />
             }
             label="ExtendedView"
+            labelPlacement="top"
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={allLineVisible}
+                onChange={evt => setAllLineVisible(evt.target.checked)}
+                color="primary"
+              />
+            }
+            label={"Show all attack paths"}
             labelPlacement="top"
           />
         </Paper>
