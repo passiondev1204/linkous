@@ -2,6 +2,7 @@ import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import Paper from "@material-ui/core/Paper";
 import TextField from "@material-ui/core/TextField";
+import Typography from "@material-ui/core/Typography";
 import Divider from "@material-ui/core/Divider";
 import IconButton from "@material-ui/core/IconButton";
 import MenuIcon from "@material-ui/icons/Menu";
@@ -25,7 +26,9 @@ const useStyles = makeStyles(theme => ({
     padding: "2px 4px",
     display: "flex",
     alignItems: "center",
-    width: 400
+    width: 400,
+    fontFamily: "Poppins !importants",
+    boxShadow: "0px 0px 13px 0px rgba(0, 0, 0, 0.5)"
     // "& .MuiPaper-root:active": {
     //   opacity: 1
     // }
@@ -33,9 +36,10 @@ const useStyles = makeStyles(theme => ({
   autocomplete: {
     marginLeft: theme.spacing(1),
     width: searchInputWidth,
+    fontFamily: "Poppins !importants"
   },
   searchInput: {
-
+    fontFamily: "Poppins !importants"
   },
   iconButton: {
     padding: 10

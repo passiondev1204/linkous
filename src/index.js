@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
+import './fontawesome/kit-epicons-7119534d/css/embedded-woff.css';
+import './fontawesome/kit-epicons-7119534d/css/external.css';
 import HomePage from './pages/home';
 import * as serviceWorker from './serviceWorker';
 

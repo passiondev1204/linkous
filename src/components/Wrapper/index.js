@@ -19,6 +19,8 @@ export const Wrapper = React.memo(styled.div`
   overflow-x: ${props => props.scrollx || "none"};
   overflow-y: ${props => props.scrolly || "none"};
   top: ${props => props.top + "px" || "auto"};
+  right: ${props => props.right + "px" || "auto"};  
   bottom: ${props => props.bottom + "px" || "auto"};
   z-index: ${props => props.zindex || 0};
+  pointer-events: ${props => props.pointerevents || 'auto'}
 `);

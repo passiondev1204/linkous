@@ -3,6 +3,7 @@ import * as d3 from "d3";
 import clsx from 'clsx';
 import { Wrapper } from "../Wrapper";
 import { ExpandableIcon } from "../ExpandIcon";
+import styled from "styled-components";
 import {
   makeStyles,
   Popper,
@@ -21,6 +22,8 @@ import CheckBoxIcon from "@material-ui/icons/CheckBox";
 import CheckBoxOutlineBlankIcon from "@material-ui/icons/CheckBoxOutlineBlank";
 import FiberManualRecordIcon from "@material-ui/icons/FiberManualRecord";
 import ImageIcon from "@material-ui/icons/Image";
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import ExpandLessIcon from '@material-ui/icons/ExpandLess';
 import { SearchInputBox } from "../SearchInputBox";
 import utils from "../../utils";
 import global from "../../global";
@@ -38,7 +41,8 @@ import {
   centeringPaths
 } from "./functions";
 
-const detailInfoHeight = 250, detailInfoWidth = 260, detailInfoMinWidth = 20;
+const detailInfoHeight = 260, detailInfoWidth = 260, detailInfoMinWidth = 20,
+  pathInfoWidth = 400, pathInfoHeight = 300, pathInfoMinHeight = 20;
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -47,32 +51,68 @@ const useStyles = makeStyles(theme => ({
     marginBottom: theme.spacing(1),
     fontSize: 12
   },
-  titleSection: {
+  formControlLabel: {
+    fontFamily: "Poppins",
+    color: "#48465b",
+    fontWeight: 500
+  },
+ titleSection: {
+    fontFamily: "Poppins",
+    color: "#595D6E",
+    textAlign: "center",
+    width: "100%",
+    margin: "auto",
+    fontWeight: 500,
+    marginRight: theme.spacing(1)
+  },
+  numberFontStyle: {
+    fontFamily: "Poppins",
+    color: "#5867DD",
+    fontSize: 24,
     fontWeight: 500,
     marginRight: theme.spacing(1)
   },
   descSection: {
+    fontFamily: "Poppins",
+    color: "#646C9A",
     "& span": {
       whiteSpace: "nowrap"
     }
+  },
+  MuiFormControlLabel: {
+    root: {
+      color: "blue",
+    }
+    
   },
   toggleContainer: {
     top: theme.spacing(2),
     position: "absolute",
     padding: theme.spacing(1),
     display: "flex",
-    alignItems: "center"
+    alignItems: "center",
+    fontFamily: "Poppins !important",
+    boxShadow: "0px 0px 13px 0px rgba(0, 0, 0, 0.5)"
   },
   ringInfo: {
     padding: theme.spacing(1),
     position: "absolute",
     right: theme.spacing(2),
-    bottom: theme.spacing(2)
+    bottom: theme.spacing(2),
+    boxShadow: "0px 0px 13px 0px rgba(0, 0, 0, 0.5)"
+  },
+  successInfo: {
+    display: "flex",
+    padding: theme.spacing(1),
+    position: "absolute",
+    right: theme.spacing(25),
+    bottom: theme.spacing(2),
+    boxShadow: "0px 0px 13px 0px rgba(0, 0, 0, 0.5)"
   },
   svgContainer: {
     position: "absolute",
     display: "flex",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   expandableIconButton: {
     position: "absolute",
@@ -81,41 +121,64 @@ const useStyles = makeStyles(theme => ({
     color: "white"
   },
   detailInfoPaper: {
-    position: "absolute",
-    top: `calc(50% - ${detailInfoHeight / 2}px)`,
-    flexShrink: 0,
-    right: 4,
-    height: detailInfoHeight,
-    opacity: 0.9,
+    display: 'flex',
+    pointerEvents: 'auto',
+    opacity: 0.9, 
     padding: `${theme.spacing(2)}px ${theme.spacing(2)}px ${theme.spacing(
       2
-    )}px ${theme.spacing(1)}px`
+    )}px ${theme.spacing(1)}px`,
+    boxShadow: "0px 0px 13px 0px rgba(0, 0, 0, 0.5)"
   },
   detainInfoOpen: {
-    width: detailInfoWidth,
-    transition: theme.transitions.create("width", {
-      easing: theme.transitions.easing.sharp,
-      duration: 150
-    }),
+    // width: 'auto',
+    // transition: theme.transitions.create("width", {
+    //   easing: theme.transitions.easing.sharp,
+    //   duration: 3550
+    // }),
   },
   detainInfoClose: {
     width: detailInfoMinWidth,
-    transition: theme.transitions.create("width", {
-      easing: theme.transitions.easing.sharp,      
-      duration: 150
-    }),
+    // transition: theme.transitions.create("width", {
+    //   easing: theme.transitions.easing.sharp,      
+    //   duration: 3550
+    // }),
     overflowX: "hidden",
   },
   detailInfoTextOpen: {
-    color: "rgba(0, 0, 0, 1)",
-    transition: theme.transitions.create("color", {      
+    opacity: 0.9,
+    transition: theme.transitions.create("opacity", {
       duration: 550
     }),
   },
   detailInfoTextClose: {
-    color: "rgba(0, 0, 0, 0)",
-    transition: theme.transitions.create("color", {      
+    opacity: 0,
+    transition: theme.transitions.create("opacity", {      
       duration: 150
+    }),
+  },
+  pathInfoPaper: {
+    display: 'flex',
+    pointerEvents: 'auto',
+    opacity: 0.9,    
+    padding: `${theme.spacing(1)}px ${theme.spacing(2)}px`,
+    boxShadow: "0px 0px 13px 0px rgba(0, 0, 0, 0.5)"
+  },
+  pathInfoOpen: {
+  },
+  pathInfoClose: {
+    height: pathInfoMinHeight,
+    overflowY: "hidden",
+  },
+  pathInfoTextOpen: {
+    opacity: 0.9,
+    transition: theme.transitions.create("opacity", {
+      duration: 550
+    }),
+  },
+  pathInfoTextClose: {
+    opacity: 0,
+    transition: theme.transitions.create("opacity", {      
+      duration: 100
     }),
   },
   checkItem: {
@@ -140,6 +203,8 @@ export const Viewer = ({ data, width, height, config }) => {
   const [magnifyMode, setMagnifyMode] = React.useState(false);
   const [showDetail, setShowDetail] = React.useState(null);
   const [detailInfo, setDetailInfo] = React.useState(null);
+  const [pathInfo, setPathInfo] = React.useState(null);
+  const [showPathInfo, setShowPathInfo] = React.useState(false);
   const [contextPosition, setContextPosition] = React.useState({
     x: null,
     y: null
@@ -271,7 +336,6 @@ export const Viewer = ({ data, width, height, config }) => {
   }, [theme]);
 
   React.useEffect(() => {
-    console.log("effect 2");
     const graph = d3.select(".graph");
 
     const nodesWrapper = graph.select(".nodes-wrapper");
@@ -308,7 +372,7 @@ export const Viewer = ({ data, width, height, config }) => {
         }
       );
     }
-    updateLinks(linksWrapper, null, config, theme, extendedView, allLineVisible);
+    updateLinks(linksWrapper, null, config, global.MOUSE_EVENT_TYPE.NONE, theme, extendedView, allLineVisible);
     const lens = graph.select(".lens").style("opacity", magnifyMode ? 1 : 0);
     nodesWrapper
       .selectAll(".nodes")
@@ -362,7 +426,7 @@ export const Viewer = ({ data, width, height, config }) => {
           node: d
         }
       );
-      updateLinks(linksWrapper, d, config, theme, extendedView, allLineVisible);
+      updateLinks(linksWrapper, d, config, global.MOUSE_EVENT_TYPE.CLICK, theme, extendedView, allLineVisible);
     }
     function nodeMouseOver(d) {
       d3.event.stopPropagation();
@@ -371,7 +435,7 @@ export const Viewer = ({ data, width, height, config }) => {
       setTooltipAnchorEl(d3.event.currentTarget);
       setTooltipOpen(true);
 
-      updateLinks(linksWrapper, d, config, theme, extendedView, allLineVisible);
+      updateLinks(linksWrapper, d, config, global.MOUSE_EVENT_TYPE.HOVER, theme, extendedView, allLineVisible);
 
       if (magnifyMode) return;
       let filteredPathArr = centeringPaths(d, config.levelCounts, links);
@@ -416,7 +480,7 @@ export const Viewer = ({ data, width, height, config }) => {
           node: null
         }
       );
-      updateLinks(linksWrapper, null, config, theme, extendedView, allLineVisible);
+      updateLinks(linksWrapper, null, config, global.MOUSE_EVENT_TYPE.OUT, theme, extendedView, allLineVisible);
       linksWrapper.selectAll(".effect-line").remove();
     }
   }, [config, width, height, showType, theme, extendedView, magnifyMode, allLineVisible]);
@@ -458,7 +522,8 @@ export const Viewer = ({ data, width, height, config }) => {
                 color="primary"
               />
             }
-            label={theme === "dark" ? "Dark" : "White"}
+            
+            label={theme === "dark" ? <Typography className={classes.formControlLabel}>Dark</Typography> : <Typography className={classes.formControlLabel}>White</Typography>}
             labelPlacement="top"
           />
           <FormControlLabel
@@ -469,7 +534,7 @@ export const Viewer = ({ data, width, height, config }) => {
                 color="primary"
               />
             }
-            label="ExtendedView"
+            label={<Typography className={classes.formControlLabel}>ExtendedView</Typography>}
             labelPlacement="top"
           />
           <FormControlLabel
@@ -480,19 +545,36 @@ export const Viewer = ({ data, width, height, config }) => {
                 color="primary"
               />
             }
-            label={"Show all attack paths"}
+            label={<Typography className={classes.formControlLabel}>Show all attack paths</Typography>}
             labelPlacement="top"
           />
         </Paper>
         <Paper className={classes.ringInfo}>
-          <Typography>
-            Ring 1: {data.nodes.filter(d => d.Level === 1).length}
+          <div style={{display: "flex"}}>
+            <Typography className={classes.titleSection}>
+              Last Line 
+            </Typography>
+            <Typography className={classes.numberFontStyle}>{data.nodes.filter(d => d.Level === 1).length}</Typography>
+          </div>
+          <div style={{display: "flex"}}>
+            <Typography className={classes.titleSection}>
+              Danger Zone
+            </Typography>
+            <Typography className={classes.numberFontStyle}>{data.nodes.filter(d => d.Level === 2).length}</Typography>
+          </div>
+          <div style={{display: "flex"}}>
+            <Typography className={classes.titleSection}>
+              Warning Zone
+            </Typography>
+            <Typography className={classes.numberFontStyle}>{data.nodes.filter(d => d.Level === 3).length}</Typography>
+          </div>         
+        </Paper>
+        <Paper className={classes.successInfo}>
+          <Typography className={classes.titleSection}>
+            Attacker Success
           </Typography>
-          <Typography>
-            Ring 2: {data.nodes.filter(d => d.Level === 2).length}
-          </Typography>
-          <Typography>
-            Ring 3: {data.nodes.filter(d => d.Level === 3).length}
+          <Typography className={classes.numberFontStyle}>
+            78
           </Typography>
         </Paper>
         <SearchInputBox
@@ -505,18 +587,19 @@ export const Viewer = ({ data, width, height, config }) => {
             Level: node.Level
           }))}
         />
-        {detailInfo !== null && <Paper className={clsx(classes.detailInfoPaper, {
-          [classes.detainInfoOpen]: showDetail,
-          [classes.detainInfoClose]: !showDetail
-        })}>
-          <Wrapper align="center">
-            <IconButton
-              size="small"
-              onClick={() => setShowDetail(!showDetail)}
-            >
-              <ExpandableIcon expanded={showDetail} />
-            </IconButton>
-            {detailInfo && (
+        {detailInfo !== null && 
+        <Wrapper width="auto" layout="absolute" pointerevents="none" direction="column" right="16" justify="center">
+          <Paper className={clsx(classes.detailInfoPaper, {
+            [classes.detainInfoOpen]: showDetail,
+            [classes.detainInfoClose]: !showDetail
+          })}>
+            <Wrapper align="center">
+              <IconButton
+                size="small"
+                onClick={() => setShowDetail(!showDetail)}
+              >
+                <ExpandableIcon expanded={showDetail} />
+              </IconButton>
               <Wrapper pl={8} className={clsx({
                 [classes.detailInfoTextOpen]: showDetail,
                 [classes.detailInfoTextClose]: !showDetail,
@@ -557,9 +640,37 @@ export const Viewer = ({ data, width, height, config }) => {
                   <span>{detailInfo.Conditions[0].Config}</span>
                 </Wrapper>
               </Wrapper>
-            )}
-          </Wrapper>
-        </Paper>}
+            </Wrapper>
+          </Paper>
+        </Wrapper>}
+        <Wrapper height="auto" layout="absolute" pointerevents="none" bottom="16" justify="center">
+          <Paper className={clsx(classes.pathInfoPaper, {
+            [classes.pathInfoOpen]: showPathInfo,
+            [classes.pathInfoClose]: !showPathInfo
+          })}>
+            <Wrapper align="center" direction="column">
+              <IconButton
+                size="small"
+                onClick={() => setShowPathInfo(!showPathInfo)}
+              >
+                <ExpandableIcon expanded={showPathInfo} ExpandIcon={ExpandLessIcon} CollapseIcon={ExpandMoreIcon}/>
+              </IconButton>
+              {/* {pathInfo && ( */}
+                <Wrapper pb={8} className={clsx({
+                  [classes.pathInfoTextOpen]: showPathInfo,
+                  [classes.pathInfoTextClose]: !showPathInfo,
+                })}>
+                  ABC<br />
+                  BCCBBBBBBBBBBBBB
+                  ABC<br />
+                  ABC<br />
+                  BCC
+                  ABC<br />
+                </Wrapper>
+              {/* )} */}
+            </Wrapper>
+          </Paper>
+        </Wrapper>
       </div>
       {!magnifyMode && (
         <Popper

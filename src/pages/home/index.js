@@ -91,6 +91,7 @@ function HomePage() {
             linkHighlightColor: "#aaa",
             linkEffectColor: "white",
             backgroundColor: "#131f26",
+            nodeIconColor: "black",
             nodeTextColor: "white",
             fillOpacity: 0.5,
             levelCircles: [
@@ -131,8 +132,9 @@ function HomePage() {
             highlightColor: "#111177",
             linkHighlightColor: "#aaa",
             linkEffectColor: "#553377",
-            backgroundColor: "fff",
-            nodeTextColor: "black",
+            backgroundColor: "#ffffff",
+            nodeIconColor: "white",
+            nodeTextColor: "#48465b",
             fillOpacity: 0.8,
             levelCircles: [
               {

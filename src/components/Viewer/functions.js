@@ -194,6 +194,7 @@ export const addNodes = (
   parentId = null
 ) => {
   const ring4Level = config.levelCounts - 1;
+
   const nodesG = wrapper
     .selectAll("nodes")
     .data(nodes)
@@ -223,6 +224,7 @@ export const addNodes = (
       const links_count = links.filter(
         link => d.id === link.node1 || d.id === link.node2
       ).length;
+      d.icon_size = utils.getIconSize(links_count);
       d.r = config.nodeSize + links_count * config.nodeSizeStep;
       return `translate(${d.x}, ${d.y})`;
     });
@@ -236,26 +238,25 @@ export const addNodes = (
     .style("opacity", 1)
     .attr("r", d => d.r);
   nodesG
-    .append("svg:image")
+    .append("text")
+    .attr("class", d => `ei ${d.icon_size} node-icon`)
+    .attr("text-anchor", "middle")
+    // .attr("alignment-baseline", "middle")
+    .attr("y", d => d.r * 0.5)
+    .style("fill", config[theme].nodeIconColor)
     .style("cursor", "pointer")
-    .attr("xlink:href", d => {
-      let iconName = d.Software[0].Icon || "ei-windows";
-      iconName = iconName.replace("ei-", "");
-      return require(`../../assets/icons/svg/${iconName}.svg`);
-    })
-    .style("opacity", showType === "icon" ? 1 : 0)
-    .attr("x", d => -d.r * 0.6)
-    .attr("y", d => -d.r * 0.6)
-    .attr("width", d => d.r * 1.2)
-    .attr("height", d => d.r * 1.2);
+    .style("opacity", showType === "circle" ? 0 : 1)
+    .text(d => "\uf01f");
+
   nodesG
     .append("text")
+    .attr("class", d => `node-name ${d.icon_size}`)
     .attr("text-anchor", "middle")
     .attr("alignment-baseline", "ideographic")
-    .style("font-size", d => (d.fs = config.defaultFontSize))
+    .style("font-size", d => (d.fs = config.defaultFontSize) + "px")
     .style("fill", config[theme].nodeTextColor)
     .style("pointer-events", "none")
-    .attr("dy", d => -(d.r + 5))
+    .attr("dy", d => -(d.r + 10))
     .text(d => d.name)
     .raise();
   wrapper.raise();
@@ -343,15 +344,18 @@ export const updateNodes = (
     .attr("fill", d => config[theme].levelCircles[d.Level].nodeColor)
     .attr("stroke", d => config[theme].levelCircles[d.Level].nodeStroke)
     .style("opacity", 1);
-  wrapper
-    .selectAll(".nodes")
-    .select("image")
-    .style("opacity", showType === "icon" ? 1 : 0);
 
   wrapper
     .selectAll(".nodes")
-    .select("text")
+    .select(".node-name")
     .style("fill", config[theme].nodeTextColor);
+
+  wrapper
+    .selectAll(".nodes")
+    .select(".node-icon")
+    .style("opacity", showType === "circle" ? 0 : 1)
+    .style("fill", config[theme].nodeIconColor);
+
   if (extended) {
     wrapper
       .selectAll(".nodes")
@@ -366,7 +370,10 @@ export const updateNodes = (
       );
   }
 
-  if (actionObj.action === global.MOUSE_EVENT_TYPE.EXPAND) {
+  if (
+    actionObj.action === global.MOUSE_EVENT_TYPE.EXPAND ||
+    actionObj.action === global.MOUSE_EVENT_TYPE.CLICK
+  ) {
     nodesHasring4.forEach(pNode => {
       let childNodes = links
         .filter(
@@ -376,7 +383,10 @@ export const updateNodes = (
         .map(d => d.source);
 
       let rad = childNodes.length * config.baseRadius * 0.3;
-      if (actionObj.node.id === pNode.id) {
+      if (
+        actionObj.node.id === pNode.id &&
+        actionObj.action === global.MOUSE_EVENT_TYPE.EXPAND
+      ) {
         rad = childNodes.length * config.baseRadius;
       }
 
@@ -422,6 +432,7 @@ export const updateLinks = (
   wrapper,
   node,
   config,
+  mouseAction,
   theme = "dark",
   extended = true,
   allLineVisible = true
@@ -430,11 +441,22 @@ export const updateLinks = (
   wrapper
     .selectAll(".links")
     .attr("d", d => `M${d.source.x} ${d.source.y}L${d.target.x} ${d.target.y}`)
-    .style("stroke", config[theme].linkColor)
-    .style("stroke-width", config.lineThickness)
-    .style("opacity", d =>
-      allLineVisible ? d.source.Level === ring4Level ? config.ring4DefaultOpacity : 1 : 0
-    );
+    .style("stroke", d =>
+      d.keeped ? config[theme].linkHighlightColor : config[theme].linkColor
+    )
+    .style("stroke-width", d =>
+      d.keeped ? config.lineThickness * 2 : config.lineThickness
+    )
+    .style("opacity", d => {
+      if (allLineVisible) {
+        return d.source.Level === ring4Level ? config.ring4DefaultOpacity : 1;
+      } else {
+        if (d.keeped) {
+          return d.source.Level === ring4Level ? config.ring4DefaultOpacity : 1;
+        }
+        return 0;
+      }
+    });
   if (extended) {
     wrapper.selectAll(".links").style("visibility", "visible");
   } else {
@@ -448,30 +470,46 @@ export const updateLinks = (
   }
 
   if (!node) return;
+
+  if(mouseAction === global.MOUSE_EVENT_TYPE.CLICK) {
+    wrapper
+    .selectAll(".links").each(function(d) {
+      d.keeped = false;
+    })
+  }
+
   wrapper
     .selectAll(".links")
-    .style("stroke", d =>
-      d.node1 === node.id || d.node2 === node.id
-        ? config[theme].linkHighlightColor
-        : config[theme].linkColor
-    )
-    .style("stroke-width", d =>
-      d.node1 === node.id || d.node2 === node.id
-        ? config.lineThickness * 2
-        : config.lineThickness
-    )
+    .style("stroke", d => {
+      if(d.keeped) return config[theme].linkHighlightColor;
+      if (d.node1 === node.id || d.node2 === node.id) {
+        if (mouseAction === global.MOUSE_EVENT_TYPE.CLICK) d.keeped = true;
+        // else d.keeped = false;
+        return config[theme].linkHighlightColor;
+      }
+      return config[theme].linkColor;
+    })
+    .style("stroke-width", d => {
+      if(d.keeped) return config.lineThickness * 2;
+      if (d.node1 === node.id || d.node2 === node.id) {
+        return config.lineThickness * 2;
+      } else {
+        return config.lineThickness;
+      }
+    })
     .style("opacity", d => {
-        if (d.node1 === node.id || d.node2 === node.id) {
-          if (d.source.Level === ring4Level) {
-            return config.ring4HoverOpacity;
-          } 
-          return 1;          
-        } else {
-          if (d.source.Level === ring4Level) {
-            return allLineVisible ? config.ring4DefaultOpacity : 0;
-          } else {
-            return allLineVisible ? 1 : 0;
-          }
+      if(d.keeped) return d.source.Level === ring4Level ? config.ring4DefaultOpacity : 1;
+      if (d.node1 === node.id || d.node2 === node.id) {
+        if (d.source.Level === ring4Level) {
+          return config.ring4HoverOpacity;
         }
+        return 1;
+      } else {
+        if (d.source.Level === ring4Level) {
+          return allLineVisible ? config.ring4DefaultOpacity : 0;
+        } else {
+          return allLineVisible ? 1 : 0;
+        }
+      }
     });
 };

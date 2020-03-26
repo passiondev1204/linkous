@@ -18,6 +18,18 @@ export default {
   },
   randomRange: (min, max) => Math.random() * (max - min) + min,
   clone: val => JSON.parse(JSON.stringify(val)),
+  getIconSize: linkCounts => {
+    if(linkCounts <= 5) {
+      return "ei-lg";
+    } else if (linkCounts <= 10) {
+      return "ei-2x";
+    } else if (linkCounts <= 50) {
+      return "ei-3x";
+    } else if (linkCounts <= 100) {
+      return "ei-4x"
+    } else
+      return "ei-5x";
+  },
   filteredList:(lists, search) => {
     let filtered_list = [];
     lists.forEach(item => {
