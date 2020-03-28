@@ -1,30 +1,22 @@
 import React from "react";
 import * as d3 from "d3";
-import clsx from 'clsx';
-import { Wrapper } from "../Wrapper";
-import { ExpandableIcon } from "../ExpandIcon";
-import styled from "styled-components";
 import {
-  makeStyles,
   Popper,
   Menu,
   MenuItem,
   Fade,
-  Slide,
-  Paper,
-  Typography,
-  FormControlLabel,
-  IconButton,
-  Switch
+  Paper
 } from "@material-ui/core";
-import { ToggleButton, ToggleButtonGroup } from "@material-ui/lab";
 import CheckBoxIcon from "@material-ui/icons/CheckBox";
 import CheckBoxOutlineBlankIcon from "@material-ui/icons/CheckBoxOutlineBlank";
-import FiberManualRecordIcon from "@material-ui/icons/FiberManualRecord";
-import ImageIcon from "@material-ui/icons/Image";
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import ExpandLessIcon from '@material-ui/icons/ExpandLess';
 import { SearchInputBox } from "../SearchInputBox";
+import { ZoneInfoCard } from "../ZoneInfoCard";
+import { AttackSuccessCard } from "../AttackSuccessCard";
+import { DetailInfoCard } from "../DetailInfoCard";
+import { PathsInfoCard } from "../PathsInfoCard";
+import { ModeSelectCard } from "../ModeSelectCard";
+import { Tooltip } from "../Tooltip";
+import { Wrapper } from "../Wrapper";
 import utils from "../../utils";
 import global from "../../global";
 import {
@@ -38,153 +30,10 @@ import {
   getLinks,
   updateNodes,
   updateLinks,
-  centeringPaths
+  centeringPaths,
+  getFullPaths
 } from "./functions";
-
-const detailInfoHeight = 260, detailInfoWidth = 260, detailInfoMinWidth = 20,
-  pathInfoWidth = 400, pathInfoHeight = 300, pathInfoMinHeight = 20;
-
-const useStyles = makeStyles(theme => ({
-  paper: {
-    padding: theme.spacing(1),
-    marginTop: theme.spacing(1),
-    marginBottom: theme.spacing(1),
-    fontSize: 12
-  },
-  formControlLabel: {
-    fontFamily: "Poppins",
-    color: "#48465b",
-    fontWeight: 500
-  },
- titleSection: {
-    fontFamily: "Poppins",
-    color: "#595D6E",
-    textAlign: "center",
-    width: "100%",
-    margin: "auto",
-    fontWeight: 500,
-    marginRight: theme.spacing(1)
-  },
-  numberFontStyle: {
-    fontFamily: "Poppins",
-    color: "#5867DD",
-    fontSize: 24,
-    fontWeight: 500,
-    marginRight: theme.spacing(1)
-  },
-  descSection: {
-    fontFamily: "Poppins",
-    color: "#646C9A",
-    "& span": {
-      whiteSpace: "nowrap"
-    }
-  },
-  MuiFormControlLabel: {
-    root: {
-      color: "blue",
-    }
-    
-  },
-  toggleContainer: {
-    top: theme.spacing(2),
-    position: "absolute",
-    padding: theme.spacing(1),
-    display: "flex",
-    alignItems: "center",
-    fontFamily: "Poppins !important",
-    boxShadow: "0px 0px 13px 0px rgba(0, 0, 0, 0.5)"
-  },
-  ringInfo: {
-    padding: theme.spacing(1),
-    position: "absolute",
-    right: theme.spacing(2),
-    bottom: theme.spacing(2),
-    boxShadow: "0px 0px 13px 0px rgba(0, 0, 0, 0.5)"
-  },
-  successInfo: {
-    display: "flex",
-    padding: theme.spacing(1),
-    position: "absolute",
-    right: theme.spacing(25),
-    bottom: theme.spacing(2),
-    boxShadow: "0px 0px 13px 0px rgba(0, 0, 0, 0.5)"
-  },
-  svgContainer: {
-    position: "absolute",
-    display: "flex",
-    justifyContent: "center",
-  },
-  expandableIconButton: {
-    position: "absolute",
-    top: "50%",
-    right: 0,
-    color: "white"
-  },
-  detailInfoPaper: {
-    display: 'flex',
-    pointerEvents: 'auto',
-    opacity: 0.9, 
-    padding: `${theme.spacing(2)}px ${theme.spacing(2)}px ${theme.spacing(
-      2
-    )}px ${theme.spacing(1)}px`,
-    boxShadow: "0px 0px 13px 0px rgba(0, 0, 0, 0.5)"
-  },
-  detainInfoOpen: {
-    // width: 'auto',
-    // transition: theme.transitions.create("width", {
-    //   easing: theme.transitions.easing.sharp,
-    //   duration: 3550
-    // }),
-  },
-  detainInfoClose: {
-    width: detailInfoMinWidth,
-    // transition: theme.transitions.create("width", {
-    //   easing: theme.transitions.easing.sharp,      
-    //   duration: 3550
-    // }),
-    overflowX: "hidden",
-  },
-  detailInfoTextOpen: {
-    opacity: 0.9,
-    transition: theme.transitions.create("opacity", {
-      duration: 550
-    }),
-  },
-  detailInfoTextClose: {
-    opacity: 0,
-    transition: theme.transitions.create("opacity", {      
-      duration: 150
-    }),
-  },
-  pathInfoPaper: {
-    display: 'flex',
-    pointerEvents: 'auto',
-    opacity: 0.9,    
-    padding: `${theme.spacing(1)}px ${theme.spacing(2)}px`,
-    boxShadow: "0px 0px 13px 0px rgba(0, 0, 0, 0.5)"
-  },
-  pathInfoOpen: {
-  },
-  pathInfoClose: {
-    height: pathInfoMinHeight,
-    overflowY: "hidden",
-  },
-  pathInfoTextOpen: {
-    opacity: 0.9,
-    transition: theme.transitions.create("opacity", {
-      duration: 550
-    }),
-  },
-  pathInfoTextClose: {
-    opacity: 0,
-    transition: theme.transitions.create("opacity", {      
-      duration: 100
-    }),
-  },
-  checkItem: {
-    marginRight: theme.spacing(2)
-  }
-}));
+import {useStyles} from "./style";
 
 export const Viewer = ({ data, width, height, config }) => {
   const classes = useStyles();
@@ -196,19 +45,22 @@ export const Viewer = ({ data, width, height, config }) => {
 
   const [tooltipAnchorEl, setTooltipAnchorEl] = React.useState(null);
   const [tooltipOpen, setTooltipOpen] = React.useState(false);
-  const [theme, setTheme] = React.useState("dark");
-  const [showType, setShowType] = React.useState("circle");
-  const [extendedView, setExtendedView] = React.useState(true);
-  const [allLineVisible, setAllLineVisible] = React.useState(false);
   const [magnifyMode, setMagnifyMode] = React.useState(false);
-  const [showDetail, setShowDetail] = React.useState(null);
-  const [detailInfo, setDetailInfo] = React.useState(null);
-  const [pathInfo, setPathInfo] = React.useState(null);
-  const [showPathInfo, setShowPathInfo] = React.useState(false);
+  const [disableTooltip, setDisableTooltip] = React.useState(false);
   const [contextPosition, setContextPosition] = React.useState({
     x: null,
     y: null
   });
+  const [selectedPath, setSelectedPath] = React.useState(null);
+
+  const [theme, setTheme] = React.useState("dark");
+  const [nodeShape, setNodeShape] = React.useState("circle");
+  const [extended, setExtended] = React.useState(true);
+  const [showLines, setShowLines] = React.useState(false);  
+
+  const [showModeCard, setShowModeCard] = React.useState(true);
+  const [detailInfo, setDetailInfo] = React.useState({show: null, info: null});
+  const [pathsInfo, setPathsInfo] = React.useState({show: null, info: null});  
 
   let nodes = data.nodes,
     links = getLinks(data.nodes, data.links);
@@ -228,6 +80,11 @@ export const Viewer = ({ data, width, height, config }) => {
     );
     setContextPosition({ x: null, y: null });
   };
+
+  const onDisableTooltip = () => {
+    setDisableTooltip(!disableTooltip);
+    setContextPosition({ x: null, y: null });
+  }
 
   const onSearch = searchText => {
     const filtered = utils.filteredList(
@@ -249,27 +106,47 @@ export const Viewer = ({ data, width, height, config }) => {
         node.selected = false;
       }
     });
-
-    setShowDetail(true);
-    setDetailInfo(nodes.filter(node => node.id === filtered.id)[0]);
+    
+    setDetailInfo({show: true, info: nodes.filter(node => node.id === filtered.id)[0]});
 
     const graph = d3.select(".graph");
     const nodesWrapper = graph.select(".nodes-wrapper");
     updateNodes(
       nodesWrapper,
+      selectedPath,
       nodes,
       links,
       config,
       levelInfos.current,
-      showType,
+      nodeShape,
       theme,
-      extendedView,
+      extended,
       {
         action: global.MOUSE_EVENT_TYPE.NONE,
         node: null
       }
     );
   };
+
+  const onSelectPath = (pathsInfo, pathColor) => {
+    const graph = d3.select(".graph");
+    const linksWrapper = graph.select(".links-wrapper");
+    const nodesWrapper = graph.select(".nodes-wrapper");
+    setSelectedPath({paths: pathsInfo.paths, color: pathColor});
+    updateNodes(
+      nodesWrapper,
+      {paths: pathsInfo.paths, color: pathColor},
+      nodes,
+      links,
+      config,
+      levelInfos.current,
+      nodeShape,
+      theme,
+      extended,
+      null
+    );      
+    updateLinks(linksWrapper, {paths: pathsInfo.paths, color: pathColor}, null, config, global.MOUSE_EVENT_TYPE.SELECT, theme, extended, showLines);
+  }  
 
   React.useEffect(() => {
     const base_cx = width / 2,
@@ -333,7 +210,8 @@ export const Viewer = ({ data, width, height, config }) => {
     addNodesOfRing4(nodesWrapper, nodes, links, config, levelInfos.current);
     addDonutCircles(nodesWrapper, nodes, config);
     addLinks(linksWrapper, links, config);
-  }, [theme]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   React.useEffect(() => {
     const graph = d3.select(".graph");
@@ -344,13 +222,14 @@ export const Viewer = ({ data, width, height, config }) => {
     if (clickedNode.current) {
       updateNodes(
         nodesWrapper,
+        selectedPath,
         nodes,
         links,
         config,
         levelInfos.current,
-        showType,
+        nodeShape,
         theme,
-        extendedView,
+        extended,
         {
           action: clickedNode.current.hasRing4 ? global.MOUSE_EVENT_TYPE.EXPAND : global.MOUSE_EVENT_TYPE.CLICK,
           node: clickedNode.current
@@ -359,20 +238,21 @@ export const Viewer = ({ data, width, height, config }) => {
     } else {
       updateNodes(
         nodesWrapper,
+        selectedPath,
         nodes,
         links,
         config,
         levelInfos.current,
-        showType,
+        nodeShape,
         theme,
-        extendedView,
+        extended,
         {
           action: global.MOUSE_EVENT_TYPE.NONE,
           node: null
         }
       );
     }
-    updateLinks(linksWrapper, null, config, global.MOUSE_EVENT_TYPE.NONE, theme, extendedView, allLineVisible);
+    updateLinks(linksWrapper, null, null, config, global.MOUSE_EVENT_TYPE.NONE, theme, extended, showLines);
     const lens = graph.select(".lens").style("opacity", magnifyMode ? 1 : 0);
     nodesWrapper
       .selectAll(".nodes")
@@ -407,38 +287,48 @@ export const Viewer = ({ data, width, height, config }) => {
 
     function nodeClick(d) {
       d3.event.stopPropagation();
-      setDetailInfo(d);
-      setShowDetail(true);
+      setDetailInfo({show: true, info: d});
+      setSelectedPath(null);
+      
       nodes.forEach(node => {node.selected = false});
       d.selected = true;
+
+      let filteredPathArr = centeringPaths(d, config.levelCounts, links);
+
       clickedNode.current = d;
       updateNodes(
         nodesWrapper,
+        selectedPath,
         nodes,
         links,
         config,
         levelInfos.current,
-        showType,
+        nodeShape,
         theme,
-        extendedView,
+        extended,
         {
-          action: !d.hasRing4 || !extendedView ? global.MOUSE_EVENT_TYPE.CLICK : global.MOUSE_EVENT_TYPE.EXPAND,
+          action: !d.hasRing4 || !extended ? global.MOUSE_EVENT_TYPE.CLICK : global.MOUSE_EVENT_TYPE.EXPAND,
           node: d
         }
-      );
-      updateLinks(linksWrapper, d, config, global.MOUSE_EVENT_TYPE.CLICK, theme, extendedView, allLineVisible);
+      );      
+       
+      updateLinks(linksWrapper, filteredPathArr, d, config, global.MOUSE_EVENT_TYPE.CLICK, theme, extended, showLines); 
+      setPathsInfo({show: true, info: getFullPaths(filteredPathArr)});
     }
     function nodeMouseOver(d) {
       d3.event.stopPropagation();
-      tooltipContentRef.current = d;
-      clearTimeout(timeoutRef.current);
-      setTooltipAnchorEl(d3.event.currentTarget);
-      setTooltipOpen(true);
-
-      updateLinks(linksWrapper, d, config, global.MOUSE_EVENT_TYPE.HOVER, theme, extendedView, allLineVisible);
+      if(!disableTooltip) {
+        tooltipContentRef.current = d;
+        clearTimeout(timeoutRef.current);
+        setTooltipAnchorEl(d3.event.currentTarget);
+        setTooltipOpen(true);
+      }
+      
+      updateLinks(linksWrapper, null, d, config, global.MOUSE_EVENT_TYPE.HOVER, theme, extended, showLines);
 
       if (magnifyMode) return;
       let filteredPathArr = centeringPaths(d, config.levelCounts, links);
+      
       filteredPathArr.forEach((fpaths, i) => {
         linksWrapper
           .selectAll(`.level${i}-paths`)
@@ -462,28 +352,32 @@ export const Viewer = ({ data, width, height, config }) => {
       });
     }
     function nodeMouseOut(d) {
-      timeoutRef.current = setTimeout(() => {
-        setTooltipOpen(false);
-        setTooltipAnchorEl(null);
-      }, config.duration);
+      if(!disableTooltip) {
+        timeoutRef.current = setTimeout(() => {
+          setTooltipOpen(false);
+          setTooltipAnchorEl(null);
+        }, config.duration);
+      }
       updateNodes(
         nodesWrapper,
+        selectedPath,
         nodes,
         links,
         config,
         levelInfos.current,
-        showType,
+        nodeShape,
         theme,
-        extendedView,
+        extended,
         {
           action: global.MOUSE_EVENT_TYPE.OUT,
           node: null
         }
       );
-      updateLinks(linksWrapper, null, config, global.MOUSE_EVENT_TYPE.OUT, theme, extendedView, allLineVisible);
+      updateLinks(linksWrapper, null, null, config, global.MOUSE_EVENT_TYPE.OUT, theme, extended, showLines);
       linksWrapper.selectAll(".effect-line").remove();
     }
-  }, [config, width, height, showType, theme, extendedView, magnifyMode, allLineVisible]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config, width, height, nodeShape, theme, extended, magnifyMode, disableTooltip, showLines, selectedPath]);
   return (
     <>
       <div className={classes.svgContainer} onContextMenu={onContextMenu}>
@@ -495,88 +389,18 @@ export const Viewer = ({ data, width, height, config }) => {
         >
           <g className="graph" />
         </svg>
-        <Paper className={classes.toggleContainer}>
-          <ToggleButtonGroup
-            value={showType}
-            exclusive
-            onChange={(evt, val) => {
-              clearTimeout(timeoutRef.current);
-              setTooltipOpen(false);
-              setShowType(val);
-            }}
-          >
-            <ToggleButton value="circle">
-              <FiberManualRecordIcon />
-            </ToggleButton>
-            <ToggleButton value="icon">
-              <ImageIcon />
-            </ToggleButton>
-          </ToggleButtonGroup>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={theme === "dark" ? true : false}
-                onChange={evt =>
-                  setTheme(evt.target.checked ? "dark" : "white")
-                }
-                color="primary"
-              />
-            }
-            
-            label={theme === "dark" ? <Typography className={classes.formControlLabel}>Dark</Typography> : <Typography className={classes.formControlLabel}>White</Typography>}
-            labelPlacement="top"
-          />
-          <FormControlLabel
-            control={
-              <Switch
-                checked={extendedView}
-                onChange={() => setExtendedView(!extendedView)}
-                color="primary"
-              />
-            }
-            label={<Typography className={classes.formControlLabel}>ExtendedView</Typography>}
-            labelPlacement="top"
-          />
-          <FormControlLabel
-            control={
-              <Switch
-                checked={allLineVisible}
-                onChange={evt => setAllLineVisible(evt.target.checked)}
-                color="primary"
-              />
-            }
-            label={<Typography className={classes.formControlLabel}>Show all attack paths</Typography>}
-            labelPlacement="top"
-          />
-        </Paper>
-        <Paper className={classes.ringInfo}>
-          <div style={{display: "flex"}}>
-            <Typography className={classes.titleSection}>
-              Last Line 
-            </Typography>
-            <Typography className={classes.numberFontStyle}>{data.nodes.filter(d => d.Level === 1).length}</Typography>
-          </div>
-          <div style={{display: "flex"}}>
-            <Typography className={classes.titleSection}>
-              Danger Zone
-            </Typography>
-            <Typography className={classes.numberFontStyle}>{data.nodes.filter(d => d.Level === 2).length}</Typography>
-          </div>
-          <div style={{display: "flex"}}>
-            <Typography className={classes.titleSection}>
-              Warning Zone
-            </Typography>
-            <Typography className={classes.numberFontStyle}>{data.nodes.filter(d => d.Level === 3).length}</Typography>
-          </div>         
-        </Paper>
-        <Paper className={classes.successInfo}>
-          <Typography className={classes.titleSection}>
-            Attacker Success
-          </Typography>
-          <Typography className={classes.numberFontStyle}>
-            78
-          </Typography>
-        </Paper>
+        <ModeSelectCard 
+          open={showModeCard} 
+          onExpand={() => setShowModeCard(!showModeCard)} 
+          nodeShape={nodeShape}
+          changeNodeShape={val => setNodeShape(val)}
+          theme={theme}
+          changeTheme={val => setTheme(val)}
+          extended={extended}
+          changeExtend={val => setExtended(val)}
+          showLines={showLines}
+          changeShowLines={val => setShowLines(val)}
+        />
         <SearchInputBox
           onSearch={onSearch}
           searchList={data.nodes.map(node => ({
@@ -587,92 +411,30 @@ export const Viewer = ({ data, width, height, config }) => {
             Level: node.Level
           }))}
         />
-        {detailInfo !== null && 
-        <Wrapper width="auto" layout="absolute" pointerevents="none" direction="column" right="16" justify="center">
-          <Paper className={clsx(classes.detailInfoPaper, {
-            [classes.detainInfoOpen]: showDetail,
-            [classes.detainInfoClose]: !showDetail
-          })}>
-            <Wrapper align="center">
-              <IconButton
-                size="small"
-                onClick={() => setShowDetail(!showDetail)}
-              >
-                <ExpandableIcon expanded={showDetail} />
-              </IconButton>
-              <Wrapper pl={8} className={clsx({
-                [classes.detailInfoTextOpen]: showDetail,
-                [classes.detailInfoTextClose]: !showDetail,
-              })}>
-                <Wrapper
-                  direction="column"
-                  className={classes.titleSection}
-                >
-                  <span>Name</span>
-                  <span>IP</span>
-                  <span>Mask</span>
-                  <span>Level</span>
-                  <span>AV</span>
-                  <span>OS</span>
-                  <span>Icon</span>
-                  <span>Browser</span>                  
-                  <span>RS</span>
-                  <span>RCE</span>
-                  <span>LPE</span>
-                  <span>Config</span>
-                </Wrapper>
-                <Wrapper
-                  height="auto"
-                  direction="column"
-                  className={classes.descSection}
-                >
-                  <span>{detailInfo.name}</span>
-                  <span>{detailInfo.IP}</span>
-                  <span>{detailInfo.Mask}</span>
-                  <span>{detailInfo.Level}</span>
-                  <span>{detailInfo.Software[0].AV}</span>
-                  <span>{detailInfo.Software[0].OS}</span>
-                  <span>{detailInfo.Software[0].Icon}</span>
-                  <span>{detailInfo.Software[0].Browser}</span>
-                  <span>{detailInfo.RS}</span>
-                  <span>{detailInfo.Conditions[0].RCE}</span>
-                  <span>{detailInfo.Conditions[0].LPE}</span>
-                  <span>{detailInfo.Conditions[0].Config}</span>
-                </Wrapper>
-              </Wrapper>
-            </Wrapper>
-          </Paper>
-        </Wrapper>}
-        <Wrapper height="auto" layout="absolute" pointerevents="none" bottom="16" justify="center">
-          <Paper className={clsx(classes.pathInfoPaper, {
-            [classes.pathInfoOpen]: showPathInfo,
-            [classes.pathInfoClose]: !showPathInfo
-          })}>
-            <Wrapper align="center" direction="column">
-              <IconButton
-                size="small"
-                onClick={() => setShowPathInfo(!showPathInfo)}
-              >
-                <ExpandableIcon expanded={showPathInfo} ExpandIcon={ExpandLessIcon} CollapseIcon={ExpandMoreIcon}/>
-              </IconButton>
-              {/* {pathInfo && ( */}
-                <Wrapper pb={8} className={clsx({
-                  [classes.pathInfoTextOpen]: showPathInfo,
-                  [classes.pathInfoTextClose]: !showPathInfo,
-                })}>
-                  ABC<br />
-                  BCCBBBBBBBBBBBBB
-                  ABC<br />
-                  ABC<br />
-                  BCC
-                  ABC<br />
-                </Wrapper>
-              {/* )} */}
-            </Wrapper>
-          </Paper>
-        </Wrapper>
+        <div className={classes.bottomArea}>          
+          <AttackSuccessCard successTimes={78} />
+          <ZoneInfoCard nodes={data.nodes} />
+        </div>
+        {detailInfo.show !== null && 
+          <DetailInfoCard open={detailInfo.show} onExpand={() => setDetailInfo({...detailInfo, show: !detailInfo.show})} info={detailInfo.info} />
+        }
+        {pathsInfo.show !== null && 
+          <PathsInfoCard open={pathsInfo.show} onExpand={() => setPathsInfo({...pathsInfo, show: !pathsInfo.show})} pathGroups={pathsInfo.info} onCardClick={onSelectPath}/>
+        }
       </div>
-      {!magnifyMode && (
+      {!magnifyMode && !disableTooltip && (        
+        // <Tooltip
+        //   open={tooltipOpen}
+        //   anchorEl={tooltipAnchorEl}
+        //   onOver={() => clearTimeout(timeoutRef.current)}
+        //   onOut={() => {
+        //     timeoutRef.current = setTimeout(() => {
+        //       setTooltipOpen(false);
+        //       setTooltipAnchorEl(null);
+        //     }, config.duration);
+        //   }}
+        //   info={tooltipContentRef.current}
+        // />
         <Popper
           open={tooltipOpen}
           anchorEl={tooltipAnchorEl}
@@ -690,7 +452,7 @@ export const Viewer = ({ data, width, height, config }) => {
         >
           {({ TransitionProps }) => (
             <Fade {...TransitionProps}>
-              <Paper className={classes.paper}>
+              <Paper className={classes.tooltipContainer}>
                 {tooltipContentRef.current && (
                   <Wrapper height="auto">
                     <Wrapper
@@ -752,6 +514,14 @@ export const Viewer = ({ data, width, height, config }) => {
             <CheckBoxOutlineBlankIcon className={classes.checkItem} />
           )}
           Magnifier
+        </MenuItem>        
+        <MenuItem onClick={onDisableTooltip} className={classes.menuItem}>
+          {disableTooltip ? (
+            <CheckBoxIcon className={classes.checkItem} />
+          ) : (
+            <CheckBoxOutlineBlankIcon className={classes.checkItem} />
+          )}
+          Disable Tooltip
         </MenuItem>
         <MenuItem onClick={onCenter} className={classes.menuItem}>
           Center

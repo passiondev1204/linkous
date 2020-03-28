@@ -141,8 +141,7 @@ export const PackingViewer = React.memo(({ data, width, height, config }) => {
         global.color[selectedImpactRef.current].main
       );
       setShowImpactDialog(false);
-    }
-    console.log(data.groups, "changed data.groups");
+    }    
     setShowAlertDialog(false);
     setMenuAnchorEl(null);
   };

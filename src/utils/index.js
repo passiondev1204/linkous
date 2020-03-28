@@ -1,3 +1,4 @@
+import * as d3 from "d3";
 export default {
   pattern_distance: (counts, index, dis) => {
     let deeps = Math.ceil(counts / 20);
@@ -11,10 +12,7 @@ export default {
     const r = num >> 16;
     const g = (num >> 8) & 255;
     const b = num & 255;
-    return {
-      rgb: `rgb(${r}, ${g}, ${b})`,
-      rgba: `rgb(${r}, ${g}, ${b}, 0.1)`
-    };
+    return `rgb(${r}, ${g}, ${b})`;
   },
   randomRange: (min, max) => Math.random() * (max - min) + min,
   clone: val => JSON.parse(JSON.stringify(val)),
@@ -40,5 +38,23 @@ export default {
     })    
     filtered_list = [...new Set(filtered_list)];
     return filtered_list;
-  }
+  },
+  getRandomColors: counts => {
+    const initialColor = Math.floor(Math.random() * 360);
+    const increment = 360 / counts;
+    const hsls = [];
+    for (let i = 0; i < counts; i++) {
+      hsls.push(
+        `hsl(${Math.round((initialColor + i * increment) % 360)}, 100%, 50%)`
+      );
+    }
+    return hsls;
+  },
+  getRandomInRange: (min, max) => Math.floor(Math.random() * (max - min + 1) + min),
+  checkInfoAvailable: value => {
+    if(value)
+      return value;
+    else
+      return 'N/A';
+  },
 };

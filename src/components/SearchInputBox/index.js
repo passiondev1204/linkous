@@ -1,8 +1,6 @@
 import React from "react";
-import { makeStyles } from "@material-ui/core/styles";
 import Paper from "@material-ui/core/Paper";
 import TextField from "@material-ui/core/TextField";
-import Typography from "@material-ui/core/Typography";
 import Divider from "@material-ui/core/Divider";
 import IconButton from "@material-ui/core/IconButton";
 import MenuIcon from "@material-ui/icons/Menu";
@@ -14,41 +12,9 @@ import parse from 'autosuggest-highlight/parse';
 import match from 'autosuggest-highlight/match';
 import { List } from "react-virtualized";
 import utils from "../../utils";
+import {useStyles} from "./style";
 
 const searchInputWidth = 250;
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    position: "absolute",
-    opacity: 0.8,
-    top: theme.spacing(2),
-    right: theme.spacing(2),
-    padding: "2px 4px",
-    display: "flex",
-    alignItems: "center",
-    width: 400,
-    fontFamily: "Poppins !importants",
-    boxShadow: "0px 0px 13px 0px rgba(0, 0, 0, 0.5)"
-    // "& .MuiPaper-root:active": {
-    //   opacity: 1
-    // }
-  },
-  autocomplete: {
-    marginLeft: theme.spacing(1),
-    width: searchInputWidth,
-    fontFamily: "Poppins !importants"
-  },
-  searchInput: {
-    fontFamily: "Poppins !importants"
-  },
-  iconButton: {
-    padding: 10
-  },
-  divider: {
-    height: 28,
-    margin: 4
-  }
-}));
 
 const ListboxComponent = React.forwardRef(function ListboxComponent(
   props,
@@ -81,14 +47,11 @@ const ListboxComponent = React.forwardRef(function ListboxComponent(
 
 export const SearchInputBox = props => {
   const { onSearch, searchList = [] } = props;
-  const classes = useStyles();
+  const classes = useStyles({width: searchInputWidth});
   const [searchText, setSearchText] = React.useState("");
   
   return (    
     <Paper className={classes.root}>
-      <IconButton className={classes.iconButton}>
-        <MenuIcon />
-      </IconButton>
       <Autocomplete
         className={classes.autocomplete}
         disableListWrap
@@ -144,15 +107,11 @@ export const SearchInputBox = props => {
           <CloseIcon />
         </IconButton>
       )}
-      <IconButton
+       <IconButton
         onClick={() => onSearch(searchText)}
         className={classes.iconButton}
       >
         <SearchIcon />
-      </IconButton>
-      <Divider className={classes.divider} orientation="vertical" />
-      <IconButton color="primary" className={classes.iconButton}>
-        <DirectionsIcon />
       </IconButton>
     </Paper>
   );

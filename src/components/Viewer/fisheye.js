@@ -12,7 +12,6 @@ export default {
       focus = [0, 0];
 
     function fisheye(d) {
-      //console.log("d.x is " + d.x);
       var dx = d.x - focus[0],
         dy = d.y - focus[1],
         dd = Math.sqrt(dx * dx + dy * dy);

@@ -2,8 +2,8 @@ import React from "react";
 import { Viewer } from "../../components/Viewer";
 import { PackingViewer } from "../../components/PackingViewer";
 import global from "../../global";
-import data from "../../data/sample_expanded.json";
-import data2 from "../../data/nightingale_w4_icons.json";
+// import data from "../../data/sample_expanded.json";
+import data2 from "../../data/nightingale_w45_icons .json";
 
 function HomePage() {
   return (
@@ -70,7 +70,8 @@ function HomePage() {
         config={{
           duration: 600,
           nodeSize: 15,
-          nodeThickness: 4,
+          nodeThickness: 5,
+          nodeHiglightThick : 12,
           lineThickness: 2,
           nodeSizeStep: 1,
           baseRadius: 15,
@@ -87,7 +88,7 @@ function HomePage() {
           },
           dark: {
             linkColor: "#888",
-            highlightColor: "#111177",
+            highlightColor: "white",
             linkHighlightColor: "#aaa",
             linkEffectColor: "white",
             backgroundColor: "#131f26",
@@ -129,9 +130,9 @@ function HomePage() {
           },
           white: {
             linkColor: "#888",
-            highlightColor: "#111177",
+            highlightColor: "white",
             linkHighlightColor: "#aaa",
-            linkEffectColor: "#553377",
+            linkEffectColor: "white",
             backgroundColor: "#ffffff",
             nodeIconColor: "white",
             nodeTextColor: "#48465b",
