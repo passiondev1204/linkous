@@ -186,7 +186,7 @@ export const donutCircle = (nodeGroup, node, config) => {
     .attr("stroke-width", config.node.thickness)
     .attr("stroke", config.node.hoverColor)
     .style("cursor", "pointer")
-    .style("display", "none")
+    .style("opacity", 0)
     .attr("r", d => d.r)
 };
 
@@ -493,13 +493,13 @@ export const updateNodes = (
       wrapper
       .selectAll(".nodes")
       .select(".circle-hover")
-      .style("display", d => actionObj.node.id === d.id ? "block" : "none");
+      .style("opacity", d => actionObj.node.id === d.id ? 1 : 0);
     }
     if(actionObj.action === global.MOUSE_EVENT_TYPE.OUT) {
       wrapper
       .selectAll(".nodes")
       .select(".circle-hover")
-      .style("display", "none");
+      .style("opacity", 0);
     }
   }
 

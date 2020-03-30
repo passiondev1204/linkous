@@ -17,10 +17,10 @@ export const useStyles = makeStyles(theme => ({
     fontWeight: "bold",
     marginRight: theme.spacing(1)
   },
-  value: {
-    color: "#5867DD",
+  value: props => ({
+    color: props.color,
     fontFamily: "Poppins",
     fontSize: 24,
     fontWeight: "bold",
-  }
+  })
 }));

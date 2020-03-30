@@ -58,7 +58,7 @@ const PathCard = ({
           cx={12}
           cy={12}
           r={5}
-          fill={selected ? color: 'white'}
+          fill={selected ? color : "white"}
           stroke={color}
           strokeWidth={3}
         />
@@ -66,7 +66,7 @@ const PathCard = ({
           cx={28}
           cy={25}
           r={5}
-          fill={selected ? color: 'white'}
+          fill={selected ? color : "white"}
           stroke={color}
           strokeWidth={3}
         />
@@ -74,7 +74,7 @@ const PathCard = ({
           cx={12}
           cy={38}
           r={5}
-          fill={selected ? color: 'white'}
+          fill={selected ? color : "white"}
           stroke={color}
           strokeWidth={3}
         />
@@ -83,7 +83,7 @@ const PathCard = ({
   );
 };
 
-export const PathsInfoCard = ({ open, onExpand, pathGroups, onCardClick }) => {
+export const PathsInfoCard = React.memo(({ open, onExpand, pathGroups, onCardClick }) => {
   const classes = useStyles();
   const [selected, setSelected] = React.useState(null);
   const colors = d3
@@ -92,7 +92,7 @@ export const PathsInfoCard = ({ open, onExpand, pathGroups, onCardClick }) => {
     .range(["blue", "orange", "red"]);
   React.useEffect(() => {
     setSelected(null);
-  }, [pathGroups]);
+  }, [pathGroups]);  
 
   return (
     <Wrapper
@@ -102,13 +102,17 @@ export const PathsInfoCard = ({ open, onExpand, pathGroups, onCardClick }) => {
       align="flex-end"
       bottom="8"
       justify="center"
-    >
+    >{console.log(pathGroups, 'pathGroups')}
       <Wrapper height="auto" width="auto" direction="column">
         <Wrapper height="auto" justify="center">
-          <IconButton size="small" onClick={onExpand} className={clsx(classes.expandIcon, {
+          <IconButton
+            size="small"
+            onClick={onExpand}
+            className={clsx(classes.expandIcon, {
               [classes.expandOpened]: open,
               [classes.expandClosed]: !open
-            })}>
+            })}
+          >
             <ExpandableIcon
               expanded={open}
               ExpandIcon={ExpandLessIcon}
@@ -119,48 +123,54 @@ export const PathsInfoCard = ({ open, onExpand, pathGroups, onCardClick }) => {
         <Paper
           className={clsx(classes.container, {
             [classes.opened]: open,
-            [classes.closed]: !open
+            [classes.closed]: !open 
           })}
         >
-          <Wrapper height="auto" direction="column" align="center">            
-            <Grid container spacing={1} className={clsx(classes.gridContainer, {
-              [classes.contentOpened]: open,
-              [classes.contentClosed]: !open
-            })}>
-              {pathGroups
-                .sort((a, b) =>
-                  a.reduce((a, c) => a * c.Prob, 1) >
-                  b.reduce((a, c) => a * c.Prob, 1)
-                    ? -1
-                    : 1
-                )
-                .map(paths => ({
-                  paths: paths,
-                  success: paths.reduce((a, c) => a * c.Prob, 1) / 1000
-                }))
-                .map((paths, k) => (
-                  <Grid
-                    item
-                    xs={3}
-                    key={k}
-                    onClick={() => {
-                      onCardClick(paths, colors(paths.success));
-                      setSelected(k + 1);
-                    }}
-                    className={classes.cardTile}
-                  >
-                    <PathCard
-                      cardIndex={k + 1}
-                      color={colors(paths.success)}
-                      attackSuccess={paths.success}
-                      selected={k + 1 === selected}
-                    />
-                  </Grid>
-                ))}
-            </Grid>
-          </Wrapper>
+          {pathGroups && (
+            <Wrapper height="auto" direction="column" align="center">
+              <Grid
+                container
+                spacing={1}
+                className={clsx(classes.gridContainer, {
+                  [classes.contentOpened]: open,
+                  [classes.contentClosed]: !open
+                })}
+              >
+                {pathGroups
+                  .sort((a, b) =>
+                    a.reduce((a, c) => a * c.Prob, 1) >
+                    b.reduce((a, c) => a * c.Prob, 1)
+                      ? -1
+                      : 1
+                  )
+                  .map(paths => ({
+                    paths: paths,
+                    success: paths.reduce((a, c) => a * c.Prob, 1) / 1000
+                  }))
+                  .map((paths, k) => (
+                    <Grid
+                      item
+                      xs={3}
+                      key={k}
+                      onClick={() => {
+                        onCardClick(paths, colors(paths.success));
+                        setSelected(k + 1);
+                      }}
+                      className={classes.cardTile}
+                    >
+                      <PathCard
+                        cardIndex={k + 1}
+                        color={colors(paths.success)}
+                        attackSuccess={paths.success}
+                        selected={k + 1 === selected}
+                      />
+                    </Grid>
+                  ))}
+              </Grid>
+            </Wrapper>
+          )}
         </Paper>
       </Wrapper>
     </Wrapper>
   );
-};
+});

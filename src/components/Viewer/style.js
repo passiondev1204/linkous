@@ -27,6 +27,9 @@ export const useStyles = makeStyles(theme => ({
     display: "flex",
     justifyContent: "center"
   },
+  svg: props => ({
+    backgroundColor: props.bgColor
+  }),
   menuItem: {
     fontFamily: "Poppins",
     fontSize: 14

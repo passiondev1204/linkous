@@ -21,6 +21,11 @@ export const useStyles = makeStyles(theme => ({
   closed: {
     display: "none",
   },
+  iconWith: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: 2
+  },
   field: {
     fontFamily: "Poppins",
     color: "#595D6E",

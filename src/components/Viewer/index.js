@@ -2,6 +2,7 @@ import React from "react";
 import * as d3 from "d3";
 import {
   Popper,
+  Popover,
   Menu,
   MenuItem,
   Fade,
@@ -12,10 +13,10 @@ import CheckBoxOutlineBlankIcon from "@material-ui/icons/CheckBoxOutlineBlank";
 import { SearchInputBox } from "../SearchInputBox";
 import { ZoneInfoCard } from "../ZoneInfoCard";
 import { AttackSuccessCard } from "../AttackSuccessCard";
-import { DetailInfoCard } from "../DetailInfoCard";
+import { MemoDetailInfoCard } from "../DetailInfoCard";
 import { PathsInfoCard } from "../PathsInfoCard";
 import { ModeSelectCard } from "../ModeSelectCard";
-import { Tooltip } from "../Tooltip";
+// import { Tooltip } from "../Tooltip";
 import { Wrapper } from "../Wrapper";
 import utils from "../../utils";
 import global from "../../global";
@@ -33,10 +34,9 @@ import {
   centeringPaths,
   getFullPaths
 } from "./functions";
-import {useStyles} from "./style";
+import { useStyles } from "./style";
 
 export const Viewer = ({ data, width, height, config }) => {
-  const classes = useStyles();
   const svgRef = React.useRef();
   const timeoutRef = React.useRef();
   const tooltipContentRef = React.useRef();
@@ -45,28 +45,37 @@ export const Viewer = ({ data, width, height, config }) => {
 
   const [tooltipAnchorEl, setTooltipAnchorEl] = React.useState(null);
   const [tooltipOpen, setTooltipOpen] = React.useState(false);
+  const [nodeContextAnchorEl, setNodeContextAnchorEl] = React.useState(null);
+  const [nodeContextOpen, setNodeContextOpen] = React.useState(false);
   const [magnifyMode, setMagnifyMode] = React.useState(false);
   const [disableTooltip, setDisableTooltip] = React.useState(false);
   const [contextPosition, setContextPosition] = React.useState({
     x: null,
     y: null
   });
+
   const [selectedPath, setSelectedPath] = React.useState(null);
 
   const [theme, setTheme] = React.useState("dark");
   const [nodeShape, setNodeShape] = React.useState("circle");
   const [extended, setExtended] = React.useState(true);
-  const [showLines, setShowLines] = React.useState(false);  
+  const [showLines, setShowLines] = React.useState(false);
 
   const [showModeCard, setShowModeCard] = React.useState(true);
-  const [detailInfo, setDetailInfo] = React.useState({show: null, info: null});
-  const [pathsInfo, setPathsInfo] = React.useState({show: null, info: null});  
+  const [detailInfo, setDetailInfo] = React.useState({
+    show: null,
+    info: null
+  });
+  const [pathsInfo, setPathsInfo] = React.useState({ show: null, info: null });
+
+  const classes = useStyles({ bgColor: config[theme].backgroundColor });
 
   let nodes = data.nodes,
     links = getLinks(data.nodes, data.links);
 
   const onContextMenu = evt => {
     evt.preventDefault();
+    if (nodeContextOpen) return;
     setContextPosition({
       x: evt.clientX - 2,
       y: evt.clientY - 4
@@ -84,7 +93,7 @@ export const Viewer = ({ data, width, height, config }) => {
   const onDisableTooltip = () => {
     setDisableTooltip(!disableTooltip);
     setContextPosition({ x: null, y: null });
-  }
+  };
 
   const onSearch = searchText => {
     const filtered = utils.filteredList(
@@ -97,8 +106,8 @@ export const Viewer = ({ data, width, height, config }) => {
         Level: node.Level
       })),
       searchText
-    )[0];    
-    
+    )[0];
+
     nodes.forEach(node => {
       if (searchText && filtered.id === node.id) {
         node.selected = true;
@@ -106,8 +115,11 @@ export const Viewer = ({ data, width, height, config }) => {
         node.selected = false;
       }
     });
-    
-    setDetailInfo({show: true, info: nodes.filter(node => node.id === filtered.id)[0]});
+
+    setDetailInfo({
+      show: true,
+      info: nodes.filter(node => node.id === filtered.id)[0]
+    });
 
     const graph = d3.select(".graph");
     const nodesWrapper = graph.select(".nodes-wrapper");
@@ -132,10 +144,10 @@ export const Viewer = ({ data, width, height, config }) => {
     const graph = d3.select(".graph");
     const linksWrapper = graph.select(".links-wrapper");
     const nodesWrapper = graph.select(".nodes-wrapper");
-    setSelectedPath({paths: pathsInfo.paths, color: pathColor});
+    setSelectedPath({ paths: pathsInfo.paths, color: pathColor });
     updateNodes(
       nodesWrapper,
-      {paths: pathsInfo.paths, color: pathColor},
+      { paths: pathsInfo.paths, color: pathColor },
       nodes,
       links,
       config,
@@ -144,9 +156,25 @@ export const Viewer = ({ data, width, height, config }) => {
       theme,
       extended,
       null
-    );      
-    updateLinks(linksWrapper, {paths: pathsInfo.paths, color: pathColor}, null, config, global.MOUSE_EVENT_TYPE.SELECT, theme, extended, showLines);
-  }  
+    );
+    updateLinks(
+      linksWrapper,
+      { paths: pathsInfo.paths, color: pathColor },
+      null,
+      config,
+      global.MOUSE_EVENT_TYPE.SELECT,
+      theme,
+      extended,
+      showLines
+    );
+  };
+
+  const onCollapseWindows = () => {
+    setShowModeCard(false);
+    setDetailInfo({ ...detailInfo, show: false });
+    setPathsInfo({ ...pathsInfo, show: false });
+    setContextPosition({ x: null, y: null });
+  };
 
   React.useEffect(() => {
     const base_cx = width / 2,
@@ -231,7 +259,9 @@ export const Viewer = ({ data, width, height, config }) => {
         theme,
         extended,
         {
-          action: clickedNode.current.hasRing4 ? global.MOUSE_EVENT_TYPE.EXPAND : global.MOUSE_EVENT_TYPE.CLICK,
+          action: clickedNode.current.hasRing4
+            ? global.MOUSE_EVENT_TYPE.EXPAND
+            : global.MOUSE_EVENT_TYPE.CLICK,
           node: clickedNode.current
         }
       );
@@ -252,13 +282,26 @@ export const Viewer = ({ data, width, height, config }) => {
         }
       );
     }
-    updateLinks(linksWrapper, null, null, config, global.MOUSE_EVENT_TYPE.NONE, theme, extended, showLines);
+    updateLinks(
+      linksWrapper,
+      null,
+      null,
+      config,
+      global.MOUSE_EVENT_TYPE.NONE,
+      theme,
+      extended,
+      showLines
+    );
     const lens = graph.select(".lens").style("opacity", magnifyMode ? 1 : 0);
     nodesWrapper
       .selectAll(".nodes")
       .on("click", nodeClick)
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut);
+    nodesWrapper
+      .selectAll(".nodes")
+      .select(".circle-hover")
+      .on("contextmenu", nodeRightClick);
 
     graph.on("mousemove", function() {
       if (!magnifyMode) return;
@@ -287,10 +330,12 @@ export const Viewer = ({ data, width, height, config }) => {
 
     function nodeClick(d) {
       d3.event.stopPropagation();
-      setDetailInfo({show: true, info: d});
+      setDetailInfo({ show: true, info: d });
       setSelectedPath(null);
-      
-      nodes.forEach(node => {node.selected = false});
+
+      nodes.forEach(node => {
+        node.selected = false;
+      });
       d.selected = true;
 
       let filteredPathArr = centeringPaths(d, config.levelCounts, links);
@@ -307,17 +352,28 @@ export const Viewer = ({ data, width, height, config }) => {
         theme,
         extended,
         {
-          action: !d.hasRing4 || !extended ? global.MOUSE_EVENT_TYPE.CLICK : global.MOUSE_EVENT_TYPE.EXPAND,
+          action:
+            !d.hasRing4 || !extended
+              ? global.MOUSE_EVENT_TYPE.CLICK
+              : global.MOUSE_EVENT_TYPE.EXPAND,
           node: d
         }
-      );      
-       
-      updateLinks(linksWrapper, filteredPathArr, d, config, global.MOUSE_EVENT_TYPE.CLICK, theme, extended, showLines); 
-      setPathsInfo({show: true, info: getFullPaths(filteredPathArr)});
+      );
+
+      updateLinks(
+        linksWrapper,
+        filteredPathArr,
+        d,
+        config,
+        global.MOUSE_EVENT_TYPE.CLICK,
+        theme,
+        extended,
+        showLines
+      );
+      setPathsInfo({ show: true, info: getFullPaths(filteredPathArr) });
     }
     function nodeMouseOver(d) {
-      d3.event.stopPropagation();
-      if(!disableTooltip) {
+      if (!disableTooltip) {
         tooltipContentRef.current = d;
         clearTimeout(timeoutRef.current);
         setTooltipAnchorEl(d3.event.currentTarget);
@@ -337,12 +393,21 @@ export const Viewer = ({ data, width, height, config }) => {
           action: global.MOUSE_EVENT_TYPE.HOVER,
           node: d
         }
-      );   
-      updateLinks(linksWrapper, null, d, config, global.MOUSE_EVENT_TYPE.HOVER, theme, extended, showLines);
+      );
+      updateLinks(
+        linksWrapper,
+        null,
+        d,
+        config,
+        global.MOUSE_EVENT_TYPE.HOVER,
+        theme,
+        extended,
+        showLines
+      );
 
       if (magnifyMode) return;
       let filteredPathArr = centeringPaths(d, config.levelCounts, links);
-      
+
       filteredPathArr.forEach((fpaths, i) => {
         linksWrapper
           .selectAll(`.level${i}-paths`)
@@ -366,7 +431,7 @@ export const Viewer = ({ data, width, height, config }) => {
       });
     }
     function nodeMouseOut(d) {
-      if(!disableTooltip) {
+      if (!disableTooltip) {
         timeoutRef.current = setTimeout(() => {
           setTooltipOpen(false);
           setTooltipAnchorEl(null);
@@ -387,25 +452,48 @@ export const Viewer = ({ data, width, height, config }) => {
           node: null
         }
       );
-      updateLinks(linksWrapper, null, null, config, global.MOUSE_EVENT_TYPE.OUT, theme, extended, showLines);
+      updateLinks(
+        linksWrapper,
+        null,
+        null,
+        config,
+        global.MOUSE_EVENT_TYPE.OUT,
+        theme,
+        extended,
+        showLines
+      );
       linksWrapper.selectAll(".animation-line").remove();
     }
+    function nodeRightClick(d) {
+      d3.event.preventDefault();
+      setNodeContextAnchorEl(d3.event.currentTarget);
+      setNodeContextOpen(true);
+      setContextPosition({ x: null, y: null });
+      console.log("right click!!!", d);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config, width, height, nodeShape, theme, extended, magnifyMode, disableTooltip, showLines, selectedPath]);
+  }, [
+    config,
+    width,
+    height,
+    nodeShape,
+    theme,
+    extended,
+    magnifyMode,
+    disableTooltip,
+    showLines,
+    selectedPath
+  ]);
+
   return (
     <>
       <div className={classes.svgContainer} onContextMenu={onContextMenu}>
-        <svg
-          ref={svgRef}
-          width={width}
-          height={height}
-          style={{ backgroundColor: config[theme].backgroundColor }}
-        >
+        <svg ref={svgRef} width={width} height={height} className={classes.svg}>
           <g className="graph" />
         </svg>
-        <ModeSelectCard 
-          open={showModeCard} 
-          onExpand={() => setShowModeCard(!showModeCard)} 
+        <ModeSelectCard
+          open={showModeCard}
+          onExpand={() => setShowModeCard(!showModeCard)}
           nodeShape={nodeShape}
           changeNodeShape={val => setNodeShape(val)}
           theme={theme}
@@ -425,34 +513,36 @@ export const Viewer = ({ data, width, height, config }) => {
             Level: node.Level
           }))}
         />
-        <div className={classes.bottomArea}>          
-          <AttackSuccessCard successTimes={78} />
+        <div className={classes.bottomArea}>
+          <AttackSuccessCard successTimes={10} />
           <ZoneInfoCard nodes={data.nodes} />
         </div>
-        {detailInfo.show !== null && 
-          <DetailInfoCard open={detailInfo.show} onExpand={() => setDetailInfo({...detailInfo, show: !detailInfo.show})} info={detailInfo.info} />
-        }
-        {pathsInfo.show !== null && 
-          <PathsInfoCard open={pathsInfo.show} onExpand={() => setPathsInfo({...pathsInfo, show: !pathsInfo.show})} pathGroups={pathsInfo.info} onCardClick={onSelectPath}/>
-        }
+        {detailInfo.show !== null && (
+          <MemoDetailInfoCard
+            config={config}
+            open={detailInfo.show}
+            onExpand={() =>
+              setDetailInfo({ ...detailInfo, show: !detailInfo.show })
+            }
+            info={utils.flattern(detailInfo.info)}
+          />
+        )}
+        {pathsInfo.show !== null && (
+          <PathsInfoCard
+            open={pathsInfo.info.length > 0 && pathsInfo.show}
+            onExpand={() =>
+              setPathsInfo({ ...pathsInfo, show: !pathsInfo.show })
+            }
+            pathGroups={pathsInfo.info}
+            onCardClick={onSelectPath}
+          />
+        )}
       </div>
-      {!magnifyMode && !disableTooltip && (        
-        // <Tooltip
-        //   open={tooltipOpen}
-        //   anchorEl={tooltipAnchorEl}
-        //   onOver={() => clearTimeout(timeoutRef.current)}
-        //   onOut={() => {
-        //     timeoutRef.current = setTimeout(() => {
-        //       setTooltipOpen(false);
-        //       setTooltipAnchorEl(null);
-        //     }, config.duration);
-        //   }}
-        //   info={tooltipContentRef.current}
-        // />
+      {!magnifyMode && !disableTooltip && (
         <Popper
           open={tooltipOpen}
           anchorEl={tooltipAnchorEl}
-          placement={"bottom-start"}
+          placement={"bottom-end"}
           onMouseOver={() => {
             clearTimeout(timeoutRef.current);
           }}
@@ -504,6 +594,41 @@ export const Viewer = ({ data, width, height, config }) => {
           )}
         </Popper>
       )}
+      <Popover
+        open={nodeContextOpen}
+        anchorEl={nodeContextAnchorEl}
+        anchorOrigin={{
+          vertical: "center",
+          horizontal: "center"
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "left"
+        }}
+        onClose={() => {
+          setNodeContextAnchorEl(null);
+          setNodeContextOpen(false);
+        }}
+      >
+        <MenuItem
+          className={classes.menuItem}
+          onClick={() => {
+            setNodeContextAnchorEl(null);
+            setNodeContextOpen(false);
+          }}
+        >
+          Set Focus
+        </MenuItem>
+        <MenuItem
+          className={classes.menuItem}
+          onClick={() => {
+            setNodeContextAnchorEl(null);
+            setNodeContextOpen(false);
+          }}
+        >
+          Node Detail
+        </MenuItem>
+      </Popover>
       <Menu
         keepMounted
         open={contextPosition.y !== null}
@@ -528,7 +653,7 @@ export const Viewer = ({ data, width, height, config }) => {
             <CheckBoxOutlineBlankIcon className={classes.checkItem} />
           )}
           Magnifier
-        </MenuItem>        
+        </MenuItem>
         <MenuItem onClick={onDisableTooltip} className={classes.menuItem}>
           {disableTooltip ? (
             <CheckBoxIcon className={classes.checkItem} />
@@ -539,6 +664,9 @@ export const Viewer = ({ data, width, height, config }) => {
         </MenuItem>
         <MenuItem onClick={onCenter} className={classes.menuItem}>
           Center
+        </MenuItem>
+        <MenuItem onClick={onCollapseWindows} className={classes.menuItem}>
+          Collapse Windows
         </MenuItem>
       </Menu>
     </>
