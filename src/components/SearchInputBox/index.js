@@ -52,6 +52,9 @@ export const SearchInputBox = props => {
   
   return (    
     <Paper className={classes.root}>
+      <IconButton className={classes.iconButton}>
+        <MenuIcon />
+      </IconButton>
       <Autocomplete
         className={classes.autocomplete}
         disableListWrap
@@ -107,11 +110,15 @@ export const SearchInputBox = props => {
           <CloseIcon />
         </IconButton>
       )}
-       <IconButton
+      <IconButton
         onClick={() => onSearch(searchText)}
         className={classes.iconButton}
       >
         <SearchIcon />
+      </IconButton>
+      <Divider className={classes.divider} orientation="vertical" />
+      <IconButton color="primary" className={classes.iconButton}>
+        <DirectionsIcon />
       </IconButton>
     </Paper>
   );

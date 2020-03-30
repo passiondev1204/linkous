@@ -1,15 +1,14 @@
 import React from "react";
-import clsx from 'clsx';
+import clsx from "clsx";
 import Paper from "@material-ui/core/Paper";
 import IconButton from "@material-ui/core/IconButton";
 import { Wrapper } from "../Wrapper";
 import { ExpandableIcon } from "../ExpandIcon";
-import {useStyles} from "./style";
+import { useStyles } from "./style";
 
 import utils from "../../utils";
 
-export const DetailInfoCard = React.memo(({info, onExpand, open = false}) => {
-
+export const DetailInfoCard = React.memo(({ info, onExpand, open = false }) => {
   const classes = useStyles();
 
   return (
@@ -18,26 +17,27 @@ export const DetailInfoCard = React.memo(({info, onExpand, open = false}) => {
       layout="absolute"
       pointerevents="none"
       direction="column"
-      right="16"
+      right="8"
       justify="center"
     >
-      <Paper
-        className={clsx(classes.container, {
-          [classes.opened]: open,
-          [classes.closed]: !open
-        })}
-      >
-        <Wrapper align="center">
-          <IconButton size="small" onClick={onExpand}>
-            <ExpandableIcon expanded={open} />
-          </IconButton>
-          <Wrapper
-            pl={8}
-            className={clsx({
-              [classes.contentOpened]: open,
-              [classes.contentClosed]: !open
-            })}
-          >
+      <Wrapper height="auto" align="center">
+        <IconButton
+          size="small"
+          className={clsx(classes.expandIcon, {
+            [classes.expandOpened]: open,
+            [classes.expandClosed]: !open
+          })}
+          onClick={onExpand}
+        >
+          <ExpandableIcon expanded={open} />
+        </IconButton>
+        <Paper
+          className={clsx(classes.container, {
+            [classes.opened]: open,
+            [classes.closed]: !open
+          })}
+        >
+          <Wrapper align="center" pl={8}>
             <Wrapper direction="column" className={classes.field}>
               <span>Name</span>
               <span>IP</span>
@@ -64,15 +64,19 @@ export const DetailInfoCard = React.memo(({info, onExpand, open = false}) => {
               <span>{utils.checkInfoAvailable(info.Software[0].AV)}</span>
               <span>{utils.checkInfoAvailable(info.Software[0].OS)}</span>
               <span>{utils.checkInfoAvailable(info.Software[0].Icon)}</span>
-              <span>{utils.checkInfoAvailable(info.Software[0].Browser)}</span>
+              <span>
+                {utils.checkInfoAvailable(info.Software[0].Browser)}
+              </span>
               <span>{utils.checkInfoAvailable(info.RS)}</span>
               <span>{utils.checkInfoAvailable(info.Conditions[0].RCE)}</span>
               <span>{utils.checkInfoAvailable(info.Conditions[0].LPE)}</span>
-              <span>{utils.checkInfoAvailable(info.Conditions[0].Config)}</span>
+              <span>
+                {utils.checkInfoAvailable(info.Conditions[0].Config)}
+              </span>
             </Wrapper>
           </Wrapper>
-        </Wrapper>
-      </Paper>
+        </Paper>
+      </Wrapper>
     </Wrapper>
   );
 });

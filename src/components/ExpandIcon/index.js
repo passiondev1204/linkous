@@ -6,7 +6,10 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
 const useStyles = makeStyles(theme => ({
   placeHolder: {
-    display: "flex"
+    display: "flex",
+    pointerEvents: 'auto',
+    backgroundColor: 'white',
+    borderRadius: '50%'
   },
   iconOpenNormal: {
     position: "absolute",

@@ -69,103 +69,101 @@ function HomePage() {
         height={900}
         config={{
           duration: 600,
-          nodeSize: 15,
-          nodeThickness: 5,
-          nodeHiglightThick : 12,
-          lineThickness: 2,
-          nodeSizeStep: 1,
           baseRadius: 15,
           levelCounts: 5,
-          ring4DefaultOpacity: 0.1,
-          ring4HoverOpacity: 0.5,
           defaultFontSize: 13,
           lensBorderColor: "grey",
           Conditions: {
-            NONE: "#cccccc",
-            RCE: "#ff0000",
-            LPE: "#7711aa",
-            Config: "#224433",
+            NONE: "rgb(204, 204, 204)",
+            RCE: "rgb(214, 77, 5)",
+            LPE: "rgb(242, 193, 0)",
+            Exposed: "rgb(14, 6, 15)",
+            Domain: "rgb(5, 87, 221)",
+            Config: "rgb(0, 151, 246)",
+          },
+          node: {
+            size: 15,
+            thickness: 1,
+            highlightThickness: 3,
+            sizeStep: 1,
+            finalRingDefaultOpacity: 0.1,
+            finalRingHoverOpacity: 0.5,            
+          },
+          link: {
+            thickness: 1.5,
           },
           dark: {
-            linkColor: "#888",
-            highlightColor: "white",
-            linkHighlightColor: "#aaa",
-            linkEffectColor: "white",
-            backgroundColor: "#131f26",
-            nodeIconColor: "black",
-            nodeTextColor: "white",
-            fillOpacity: 0.5,
-            levelCircles: [
+            backgroundColor: "rgb(19, 31, 38)",
+            levelRingOpacity: 0.5,
+            node: {
+              color: "rgb(30, 30, 44)",
+              hoverColor: 'rgba(255, 255, 255, 0.1)',
+              selectedColor: 'rgb(255, 255, 255)',
+              iconColor: "rgb(255, 255, 255)",
+              textColor: "rgb(255, 255, 255)",
+            },
+            link: {
+              color: "rgba(255, 255, 255, 0.25)",
+              selectedColor: "rgba(255, 255, 255, 0.25)",
+              animColor: "rgba(255, 255, 255, 0.7)"
+            },
+            levelRings: [
               {
-                fill: global.color.MEDIUM.light,
-                nodeColor: global.color.MEDIUM.main,
-                nodeStroke: "white",
-                stroke: global.color.MEDIUM.main
+                fill: "rgba(0, 113, 188, 0.1)",                
+                stroke: "rgb(0, 113, 188)"
               },
               {
-                fill: global.color.CRITICAL.light,
-                nodeColor: global.color.CRITICAL.main,
-                nodeStroke: "white",
-                stroke: global.color.CRITICAL.main
+                fill: "rgba(229, 7, 7, 0.1)",
+                stroke: "rgb(229, 7, 7)"
               },
               {
-                fill: global.color.HIGH.light,
-                nodeColor: global.color.HIGH.main,
-                nodeStroke: "white",
-                stroke: global.color.HIGH.main
+                fill: "rgba(247, 147, 30, 0.1)",
+                stroke: "rgb(247, 147, 30)"
               },
               {
-                fill: global.color.LOW.light,
-                nodeColor: global.color.LOW.main,
-                nodeStroke: "white",
-                stroke: global.color.LOW.main
+                fill: "rgba(0, 113, 188, 0.1)",
+                stroke: "rgb(0, 113, 188)"
               },
               {
                 fill: "transparent",
-                nodeColor: "rgb(255, 0, 122)",
-                nodeStroke: "white",
                 stroke: "none"
               }
             ]
           },
           white: {
-            linkColor: "#888",
-            highlightColor: "white",
-            linkHighlightColor: "#aaa",
-            linkEffectColor: "white",
-            backgroundColor: "#ffffff",
-            nodeIconColor: "white",
-            nodeTextColor: "#48465b",
-            fillOpacity: 0.8,
-            levelCircles: [
+            backgroundColor: "rgb(249, 249, 249)",
+            levelRingOpacity: 0.5,
+            node: {
+              color: "rgb(255, 255, 255)",
+              hoverColor: 'rgba(0, 0, 0, 0.1)',
+              selectedColor: 'rgba(0, 0, 0, 0.3)',
+              iconColor: "rgba(0, 0, 0, 0.75)",
+              textColor: "rgb(72, 70, 91)",
+            },
+            link: {
+              color: "rgb(255, 255, 255)",
+              selectedColor: "rgb(0, 0, 0, 0.15)",
+              animColor: "rgba(0, 0, 0, 0.15)"
+            },
+            levelRings: [
               {
-                fill: global.color.MEDIUM.light,
-                nodeColor: global.color.MEDIUM.main,
-                nodeStroke: "white",
-                stroke: global.color.MEDIUM.main
+                fill: "rgba(0, 113, 188, 0.1)",                
+                stroke: "rgb(0, 113, 188)"
               },
               {
-                fill: global.color.CRITICAL.light,
-                nodeColor: global.color.CRITICAL.main,
-                nodeStroke: "white",
-                stroke: global.color.CRITICAL.main
+                fill: "rgba(229, 7, 7, 0.1)",
+                stroke: "rgb(229, 7, 7)"
               },
               {
-                fill: global.color.HIGH.light,
-                nodeColor: global.color.HIGH.main,
-                nodeStroke: "white",
-                stroke: global.color.HIGH.main
+                fill: "rgba(247, 147, 30, 0.1)",
+                stroke: "rgb(247, 147, 30)"
               },
               {
-                fill: global.color.LOW.light,
-                nodeColor: global.color.LOW.main,
-                nodeStroke: "white",
-                stroke: global.color.LOW.main
+                fill: "rgba(0, 113, 188, 0.1)",
+                stroke: "rgb(0, 113, 188)"
               },
               {
                 fill: "transparent",
-                nodeColor: "rgb(255, 0, 255)",
-                nodeStroke: "rgb(255, 0, 255, 0.5)",
                 stroke: "none"
               }
             ]

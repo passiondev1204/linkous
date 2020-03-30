@@ -1,5 +1,4 @@
 import { makeStyles } from "@material-ui/core/styles";
-const minWidth = 30;
 export const useStyles = makeStyles(theme => ({
   container: {
     display: "flex",
@@ -7,20 +6,20 @@ export const useStyles = makeStyles(theme => ({
     padding: theme.spacing(1),
     boxShadow: "0px 0px 13px 0px rgba(0, 0, 0, 0.5)"
   },
+  expandIcon: {
+    position: 'absolute',
+    boxShadow: "0px 0px 13px 0px rgb(255, 255, 255)"
+  },
+  expandOpened: {
+    left: -15,
+  },
+  expandClosed: {
+    left: -34
+  },
   opened: {
-    // width: 'auto',
-    // transition: theme.transitions.create("width", {
-    //   easing: theme.transitions.easing.sharp,
-    //   duration: 3550
-    // }),
   },
   closed: {
-    width: minWidth,
-    // transition: theme.transitions.create("width", {
-    //   easing: theme.transitions.easing.sharp,
-    //   duration: 3550
-    // }),
-    overflowX: "hidden"
+    display: "none",
   },
   field: {
     fontFamily: "Poppins",

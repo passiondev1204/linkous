@@ -177,7 +177,7 @@ export const Viewer = ({ data, width, height, config }) => {
     let maxNodesOfLevel = maxCountsOfLevel(data.nodes);
     circleWrapper
       .selectAll("circle")
-      .data(config[theme].levelCircles)
+      .data(config[theme].levelRings)
       .enter()
       .append("circle")
       .attr("cx", base_cx)
@@ -192,7 +192,7 @@ export const Viewer = ({ data, width, height, config }) => {
       .attr("fill", d => d.fill)
       .attr("stroke", d => d.stroke)
       .attr("stroke-width", config.nodeThickness)
-      .style("opacity", config[theme].fillOpacity)
+      .style("opacity", config[theme].levelRingOpacity)
       .lower();
 
     for (let i = 0; i < config.levelCounts - 1; i++) {
@@ -323,7 +323,21 @@ export const Viewer = ({ data, width, height, config }) => {
         setTooltipAnchorEl(d3.event.currentTarget);
         setTooltipOpen(true);
       }
-      
+      updateNodes(
+        nodesWrapper,
+        selectedPath,
+        nodes,
+        links,
+        config,
+        levelInfos.current,
+        nodeShape,
+        theme,
+        extended,
+        {
+          action: global.MOUSE_EVENT_TYPE.HOVER,
+          node: d
+        }
+      );   
       updateLinks(linksWrapper, null, d, config, global.MOUSE_EVENT_TYPE.HOVER, theme, extended, showLines);
 
       if (magnifyMode) return;
@@ -335,9 +349,9 @@ export const Viewer = ({ data, width, height, config }) => {
           .data(fpaths)
           .enter()
           .append("path")
-          .attr("class", `effect-line level${i}-paths`)
-          .style("stroke", config[theme].linkEffectColor)
-          .style("stroke-width", config.lineThickness * 2)
+          .attr("class", `animation-line level${i}-paths`)
+          .style("stroke", config[theme].link.animColor)
+          .style("stroke-width", config.link.thickness * 2)
           .attr(
             "d",
             d => `M${d.source.x} ${d.source.y}L ${d.source.x} ${d.source.y}`
@@ -374,7 +388,7 @@ export const Viewer = ({ data, width, height, config }) => {
         }
       );
       updateLinks(linksWrapper, null, null, config, global.MOUSE_EVENT_TYPE.OUT, theme, extended, showLines);
-      linksWrapper.selectAll(".effect-line").remove();
+      linksWrapper.selectAll(".animation-line").remove();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config, width, height, nodeShape, theme, extended, magnifyMode, disableTooltip, showLines, selectedPath]);

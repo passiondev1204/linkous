@@ -1,5 +1,4 @@
 import { makeStyles } from "@material-ui/core/styles";
-const minHeight = 30;
 const cardHeight = 90;
 const parentCardWidth = 500;
 
@@ -10,21 +9,24 @@ export const useStyles = makeStyles(theme => ({
     width: parentCardWidth,
     maxHeight: '100%',
     pointerEvents: "auto",
-    padding: theme.spacing(1),
+    padding: '16px 8px 8px 8px',
     boxShadow: "0px 0px 13px 0px rgba(0, 0, 0, 0.5)"
   },
-  opened: {    
+  opened: {
+    display: 'flex'
   },
   closed: {
-    height: minHeight,
-    overflowY: "hidden"
+    display: 'none'
   },
-  contentOpened: {
-    display: "flex"
+  expandIcon: {
+    position: 'absolute',
+    boxShadow: "0px 0px 13px 0px rgb(255, 255, 255)"
   },
-  contentClosed: {
-    display: "none",
-    height: 0
+  expandOpened: {
+    bottom: -15
+  },
+  expandClosed: {
+    bottom: 5
   },
   gridContainer: {
     display: 'flex',

@@ -27,20 +27,16 @@ export const ModeSelectCard = props => {
       top="8"
       justify="center"
     >
-      <Paper
-        className={clsx(classes.container, {
-          [classes.opened]: open,
-          [classes.closed]: !open
-        })}
-      >
-        <Wrapper height="auto" direction="column" align="center">
+      <Wrapper width="auto" height="auto" align="center" direction="column">        
+        <Paper
+          className={clsx(classes.container, {
+            [classes.opened]: open,
+            [classes.closed]: !open
+          })}
+        >          
           <div
             height="auto"
             align="center"
-            className={clsx(classes.contentContainer, {
-              [classes.contentOpened]: open,
-              [classes.contentClosed]: !open
-            })}
           >
             <ToggleButtonGroup
               value={nodeShape}
@@ -106,7 +102,12 @@ export const ModeSelectCard = props => {
               labelPlacement="top"
             />
           </div>
-          <IconButton size="small" onClick={onExpand}>
+        </Paper>
+        <Wrapper height="auto" justify="center">
+          <IconButton size="small" onClick={onExpand} className={clsx(classes.expandIcon, {
+            [classes.expandOpened]: open,
+            [classes.expandClosed]: !open
+          })}>
             <ExpandableIcon
               expanded={open}
               ExpandIcon={ExpandMoreIcon}
@@ -114,7 +115,7 @@ export const ModeSelectCard = props => {
             />
           </IconButton>
         </Wrapper>
-      </Paper>
+      </Wrapper>
     </Wrapper>
   );
 };

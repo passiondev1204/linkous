@@ -19,11 +19,11 @@ export default {
   getIconSize: linkCounts => {
     if(linkCounts <= 5) {
       return "ei-lg";
-    } else if (linkCounts <= 10) {
-      return "ei-2x";
     } else if (linkCounts <= 50) {
-      return "ei-3x";
+      return "ei-2x";
     } else if (linkCounts <= 100) {
+      return "ei-3x";
+    } else if (linkCounts <= 500) {
       return "ei-4x"
     } else
       return "ei-5x";

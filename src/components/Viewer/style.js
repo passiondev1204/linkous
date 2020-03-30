@@ -39,7 +39,7 @@ export const useStyles = makeStyles(theme => ({
     position: 'absolute',
     justifyContent: 'flex-end',
     alignItems: 'flex-end',
-    width: '100%',
+    width: 'auto',
     height: 'auto',
     right: theme.spacing(1),
     bottom: theme.spacing(1)
