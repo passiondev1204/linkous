@@ -57,7 +57,7 @@ function d3_fisheye_scale(scale, d, a) {
       min = range[0],
       max = range[1],
       m = left ? a - min : max - a;
-    if (m == 0) m = max - min;
+    if (m === 0) m = max - min;
     return ((left ? -1 : 1) * m * (d + 1)) / (d + m / Math.abs(x - a)) + a;
   }
   function rebind(target, source) {

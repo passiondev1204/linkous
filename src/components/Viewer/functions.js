@@ -33,110 +33,92 @@ export const getLinks = (nodes, links) =>
     };
   });
 
-export const forwardCenterPaths = (levelCounts, links) => {
-  let paths = [];
-
-  for (let i = levelCounts - 2; i > 0; i--) {
-    let currentLinks = links.filter(
-      link =>
-        (link.source.Level === i && link.target.Level === i - 1) ||
-        (link.target.Level === i && link.source.Level === i - 1)
-    );
-    paths.push(currentLinks);
-  }
-  return paths;
-};
-
-export const filteredPaths = (links, direction, idx) => {
-  return direction === 0
-    ? links.filter(link => link.source.id === idx)
-    : links.filter(link => link.target.id === idx);
-};
-
-export const centeringPaths = (node, levelCounts, links) => {
-  let filteredPathArr = [[], [], []];
-  if (node.Level === 2) {
-    filteredPathArr[0] = filteredPaths(
-      forwardCenterPaths(levelCounts, links)[0],
-      1,
-      node.id
-    );
-    filteredPathArr[1] = filteredPaths(
-      forwardCenterPaths(levelCounts, links)[1],
-      0,
-      node.id
-    );
-    for (let i = 0; i < filteredPathArr[1].length; i++)
-      filteredPathArr[2] = [
-        ...filteredPathArr[2],
-        ...filteredPaths(
-          forwardCenterPaths(levelCounts, links)[2],
-          0,
-          filteredPathArr[1][i].target.id
-        )
-      ];
-  }
-  if (node.Level === 3) {
-    filteredPathArr[0] = filteredPaths(
-      forwardCenterPaths(levelCounts, links)[0],
-      0,
-      node.id
-    );
-    for (let i = 0; i < filteredPathArr[0].length; i++)
-      filteredPathArr[1] = [
-        ...filteredPathArr[1],
-        ...filteredPaths(
-          forwardCenterPaths(levelCounts, links)[1],
-          0,
-          filteredPathArr[0][i].target.id
-        )
-      ];
-    for (let i = 0; i < filteredPathArr[1].length; i++)
-      filteredPathArr[2] = [
-        ...filteredPathArr[2],
-        ...filteredPaths(
-          forwardCenterPaths(levelCounts, links)[2],
-          0,
-          filteredPathArr[1][i].target.id
-        )
-      ];
-  }
-  if (node.Level === 1) {
-    filteredPathArr[2] = filteredPaths(
-      forwardCenterPaths(levelCounts, links)[2],
-      0,
-      node.id
-    );
-    for (let i = 0; i < filteredPathArr[2].length; i++)
-      filteredPathArr[1] = [
-        ...filteredPathArr[1],
-        ...filteredPaths(
-          forwardCenterPaths(levelCounts, links)[1],
-          1,
-          filteredPathArr[2][i].source.id
-        )
-      ];
-    for (let i = 0; i < filteredPathArr[1].length; i++)
-      filteredPathArr[0] = [
-        ...filteredPathArr[0],
-        ...filteredPaths(
-          forwardCenterPaths(levelCounts, links)[0],
-          1,
-          filteredPathArr[1][i].source.id
-        )
-      ];
-  }
-  filteredPathArr[0] = [...new Set(filteredPathArr[0])];
-  filteredPathArr[1] = [...new Set(filteredPathArr[1])];
-  filteredPathArr[2] = [...new Set(filteredPathArr[2])];
-  return filteredPathArr;
-};
-
 export const center = (angle, distance) => {
   return {
     cx: distance * Math.cos(angle * 2),
     cy: distance * Math.sin(angle * 2)
   };
+};
+
+export const endPoints = (nodes, links, config) => {
+  let withoutLastRing = links.filter(
+    d =>
+      d.source.Level !== config.levelCounts - 1 &&
+      d.target.Level !== config.levelCounts - 1
+  );
+
+  return nodes.filter(
+    node =>
+      withoutLastRing.filter(
+        link => link.node1 === node.id || link.node2 === node.id
+      ).length === 1 || node.Level === 3
+  );
+};
+
+const reachablePaths = (node, links, config) => {
+  if (node.Level === config.levelCounts - 1) return [];
+
+  let paths = [];
+  getPathsPerNode(node, []);
+  function getPathsPerNode(node, nodesOfPath) {
+    nodesOfPath = [...nodesOfPath, node];
+    let relatedTargetNodes = links
+      .filter(link => link.node1 === node.id)
+      .map(d => d.target);
+    let relatedSourceNodes = links
+      .filter(link => link.node2 === node.id)
+      .map(d => d.source);
+    let relatedNodes = [...relatedSourceNodes, ...relatedTargetNodes];
+    for (let rn of relatedNodes) {
+      if (rn.Level === 0) {
+        paths.push({
+          path: [...nodesOfPath, rn],
+          path_str: "-" + [...nodesOfPath, rn].map(d => d.id).join("-")
+        });
+      } else {
+        if (!nodesOfPath.map(e => e.id).includes(rn.id)) {
+          getPathsPerNode(rn, nodesOfPath);
+        }
+      }
+    }
+  }
+  return paths;
+};
+
+export const pathsForAllEndPoints = (nodes, links, config) => {
+  let curPathGroup = [],
+    totalPathGroup = [];
+  const endpoints = endPoints(nodes, links, config);
+  for (let ep of endpoints) {
+    let paths = reachablePaths(ep, links, config);
+    if (paths.length > 1) {
+      for (let i = 0; i < paths.length; i++) {
+        curPathGroup.push(paths[i]);
+      }
+    } else {
+      curPathGroup.push({
+        path: paths[0].path.flat(),
+        path_str: paths[0].path_str
+      });
+    }
+  }
+  let path = [];
+  for (let paths of curPathGroup) {
+    for (let i = 0; i < paths.path.length - 1; i++) {
+      path.push(
+        links.filter(
+          link =>
+            (link.node1 === paths.path[i].id ||
+              link.node2 === paths.path[i].id) &&
+            (link.node1 === paths.path[i + 1].id ||
+              link.node2 === paths.path[i + 1].id)
+        )[0]
+      );
+    }
+    totalPathGroup.push({ path: path, path_str: paths.path_str });
+    path = [];
+  }
+  return totalPathGroup;
 };
 
 export const hasRing4Nodes = (node, links, level4 = 4) =>
@@ -178,7 +160,7 @@ export const donutCircle = (nodeGroup, node, config) => {
     .append("path")
     .attr("d", arc)
     .attr("fill", d => colors[d.data.key]);
-  // hovering 
+  // hovering
   nodeGroup
     .append("circle")
     .attr("class", "circle-hover")
@@ -187,7 +169,7 @@ export const donutCircle = (nodeGroup, node, config) => {
     .attr("stroke", config.node.hoverColor)
     .style("cursor", "pointer")
     .style("opacity", 0)
-    .attr("r", d => d.r)
+    .attr("r", d => d.r);
 };
 
 export const addNodes = (
@@ -250,7 +232,7 @@ export const addNodes = (
     .attr("r", d => d.r);
   nodesG
     .append("text")
-    .attr("class", 'ei ei-lg node-icon')
+    .attr("class", "ei ei-lg node-icon")
     .attr("text-anchor", "middle")
     .style("font-size", d => d.r * 0.6 + "px")
     .attr("y", d => d.r * 0.2 + "px")
@@ -258,7 +240,7 @@ export const addNodes = (
     .style("cursor", "pointer")
     .style("opacity", nodeShape === "circle" ? 0 : 1)
     .text(d => global.icons[d.Software[0].Icon]);
-  
+
   nodesG
     .append("text")
     .attr("class", d => `node-name ${d.icon_size}`)
@@ -277,48 +259,6 @@ export const addDonutCircles = (wrapper, nodes, config) => {
   wrapper.selectAll(".nodes").each(function(d) {
     donutCircle(d3.select(this), d, config);
   });
-};
-
-export const getFullPaths = filters => {
-  let level3 = [],
-    level2 = [],
-    pathArrs = [],
-    paths = [];
-  if (filters[0].length > 0) {
-    for (let i = 0; i < filters[0].length; i++) {
-      level2 = filters[1].filter(e => e.source.id === filters[0][i].target.id);
-      paths.push(filters[0][i]);
-      for (let k = 0; k < level2.length; k++) {
-        level3 = filters[2].filter(
-          e => e.source.id === filters[1][k].target.id
-        );
-        paths.push(level2[k]);
-        for (let p = 0; p < level3.length; p++) {
-          paths.push(level3[p]);
-        }
-      }
-      pathArrs.push(paths);
-      paths = [];
-    }
-  } else if (filters[1].length > 0) {
-    for (let k = 0; k < filters[1].length; k++) {
-      level3 = filters[2].filter(e => e.source.id === filters[1][k].target.id);
-      paths.push(filters[1][k]);
-      for (let p = 0; p < level3.length; p++) {
-        paths.push(level3[p]);
-      }
-    }
-    pathArrs.push(paths);
-    paths = [];
-  } else if (filters[2].length > 0) {
-    for (let p = 0; p < filters[2].length; p++) {
-      paths.push(filters[2][p]);
-    }
-    pathArrs.push(paths);
-    paths = [];
-  }
-
-  return pathArrs;
 };
 
 export const addNodesOfRing4 = (
@@ -375,7 +315,6 @@ export const addLinks = (wrapper, links, config, theme = "dark") => {
     .style("opacity", d =>
       d.source.Level === ring4Level ? config.node.finalRingDefaultOpacity : 1
     );
-  
 };
 
 export const updateNodes = (
@@ -393,16 +332,16 @@ export const updateNodes = (
   const ring4Level = config.levelCounts - 1;
   const nodesHasring4 = nodesHasRing4(nodes, links);
 
-  if(filteredPaths){       
+  if (filteredPaths) {
     wrapper.selectAll(".nodes").each(function(d) {
       d.inPath = false;
     });
     wrapper.selectAll(".nodes").each(function(d) {
-      let tmpPath = filteredPaths.paths.filter(path => path.node1 === d.id || path.node2 === d.id);
-      if(tmpPath[0])
-        d.inPath = true;
-      else
-        d.inPath = false;
+      let tmpPath = filteredPaths.paths.filter(
+        path => path.node1 === d.id || path.node2 === d.id
+      );
+      if (tmpPath[0]) d.inPath = true;
+      else d.inPath = false;
     });
   }
 
@@ -417,7 +356,7 @@ export const updateNodes = (
     .selectAll(".nodes")
     .select(".circle-hover")
     .attr("fill", config[theme].node.hoverColor)
-    .attr("stroke", config[theme].node.hoverColor)
+    .attr("stroke", config[theme].node.hoverColor);
 
   wrapper
     .selectAll(".nodes")
@@ -443,7 +382,7 @@ export const updateNodes = (
         d.Level === ring4Level ? "hidden" : "visible"
       );
   }
-  if(actionObj){
+  if (actionObj) {
     if (
       actionObj.action === global.MOUSE_EVENT_TYPE.EXPAND ||
       actionObj.action === global.MOUSE_EVENT_TYPE.CLICK
@@ -489,45 +428,45 @@ export const updateNodes = (
           );
       });
     }
-    if(actionObj.action === global.MOUSE_EVENT_TYPE.HOVER) {
+    if (actionObj.action === global.MOUSE_EVENT_TYPE.HOVER) {
       wrapper
-      .selectAll(".nodes")
-      .select(".circle-hover")
-      .style("opacity", d => actionObj.node.id === d.id ? 1 : 0);
+        .selectAll(".nodes")
+        .select(".circle-hover")
+        .style("opacity", d => (actionObj.node.id === d.id ? 1 : 0));
     }
-    if(actionObj.action === global.MOUSE_EVENT_TYPE.OUT) {
+    if (actionObj.action === global.MOUSE_EVENT_TYPE.OUT) {
       wrapper
-      .selectAll(".nodes")
-      .select(".circle-hover")
-      .style("opacity", 0);
+        .selectAll(".nodes")
+        .select(".circle-hover")
+        .style("opacity", 0);
     }
   }
 
-  if(filteredPaths){
+  if (filteredPaths) {
     wrapper
-    .selectAll(".nodes")
-    .select(".circle-main")
-    .attr("stroke", d =>
-      d.inPath ? filteredPaths.color
-        : config[theme].levelRings[d.Level].stroke
-    )
-    .attr("stroke-width", d =>
-      d.selected ? config.node.highlightThickness : config.node.thickness
-    );
-  }else{
+      .selectAll(".nodes")
+      .select(".circle-main")
+      .attr("stroke", d =>
+        d.inPath
+          ? filteredPaths.color
+          : config[theme].levelRings[d.Level].stroke
+      )
+      .attr("stroke-width", d =>
+        d.selected ? config.node.highlightThickness : config.node.thickness
+      );
+  } else {
     wrapper
-    .selectAll(".nodes")
-    .select(".circle-main")
-    .attr("stroke", d =>
-      d.selected 
-        ? config[theme].node.selectedColor
-        : config[theme].levelRings[d.Level].stroke
-    )
-    .attr("stroke-width", d =>
-      d.selected ? config.node.highlightThickness : config.node.thickness
-    );
+      .selectAll(".nodes")
+      .select(".circle-main")
+      .attr("stroke", d =>
+        d.selected
+          ? config[theme].node.selectedColor
+          : config[theme].levelRings[d.Level].stroke
+      )
+      .attr("stroke-width", d =>
+        d.selected ? config.node.highlightThickness : config.node.thickness
+      );
   }
-  
 };
 
 export const updateLinks = (
@@ -541,7 +480,7 @@ export const updateLinks = (
   showLines = true
 ) => {
   const ring4Level = config.levelCounts - 1;
-  if(mouseAction === global.MOUSE_EVENT_TYPE.SELECT) {    
+  if (mouseAction === global.MOUSE_EVENT_TYPE.SELECT) {
     wrapper.selectAll(".links").each(function(d) {
       d.selected = false;
     });
@@ -560,22 +499,30 @@ export const updateLinks = (
     .selectAll(".links")
     .attr("d", d => `M${d.source.x} ${d.source.y}L${d.target.x} ${d.target.y}`)
     .style("stroke", d =>
-      d.keeped ? d.selected ? d.selected_color : config[theme].link.animColor : config[theme].link.color
+      d.keeped
+        ? d.selected
+          ? d.selected_color
+          : config[theme].link.animColor
+        : config[theme].link.color
     )
     .style("stroke-width", d =>
       d.keeped ? config.link.thickness * 2 : config.link.thickness
     )
     .style("opacity", d => {
       if (showLines) {
-        return d.source.Level === ring4Level ? config.node.finalRingDefaultOpacity : 1;
+        return d.source.Level === ring4Level
+          ? config.node.finalRingDefaultOpacity
+          : 1;
       } else {
         if (d.keeped) {
-          return d.source.Level === ring4Level ? config.node.finalRingDefaultOpacity : 1;
+          return d.source.Level === ring4Level
+            ? config.node.finalRingDefaultOpacity
+            : 1;
         }
         return 0;
       }
     });
-    
+
   if (extended) {
     wrapper.selectAll(".links").style("visibility", "visible");
   } else {
@@ -587,7 +534,7 @@ export const updateLinks = (
           : "visible"
       );
   }
-  
+
   if (!node) return;
 
   if (mouseAction === global.MOUSE_EVENT_TYPE.CLICK) {
@@ -611,7 +558,7 @@ export const updateLinks = (
   wrapper
     .selectAll(".links")
     .style("stroke", d => {
-      if( d.selected) return d.selected_color;
+      if (d.selected) return d.selected_color;
       if (d.keeped) return config[theme].link.animColor;
       if (d.node1 === node.id || d.node2 === node.id) {
         return config[theme].link.selectedColor;
@@ -628,7 +575,9 @@ export const updateLinks = (
     })
     .style("opacity", d => {
       if (d.keeped || d.selected)
-        return d.source.Level === ring4Level ? config.node.finalRingDefaultOpacity : 1;
+        return d.source.Level === ring4Level
+          ? config.node.finalRingDefaultOpacity
+          : 1;
       if (d.node1 === node.id || d.node2 === node.id) {
         if (d.source.Level === ring4Level) {
           return config.node.finalRingHoverOpacity;

@@ -1,7 +1,5 @@
 import React from "react";
 import { Viewer } from "../../components/Viewer";
-import { PackingViewer } from "../../components/PackingViewer";
-import global from "../../global";
 // import data from "../../data/sample_expanded.json";
 import data2 from "../../data/nightingale_w45_icons .json";
 
@@ -68,7 +66,7 @@ function HomePage() {
         width={1600}
         height={900}
         config={{
-          duration: 600,
+          duration: 500,
           baseRadius: 15,
           levelCounts: 5,
           defaultFontSize: 13,

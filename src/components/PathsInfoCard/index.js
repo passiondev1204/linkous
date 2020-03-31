@@ -102,7 +102,7 @@ export const PathsInfoCard = React.memo(({ open, onExpand, pathGroups, onCardCli
       align="flex-end"
       bottom="8"
       justify="center"
-    >{console.log(pathGroups, 'pathGroups')}
+    >
       <Wrapper height="auto" width="auto" direction="column">
         <Wrapper height="auto" justify="center">
           <IconButton

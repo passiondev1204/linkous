@@ -1,24 +1,4 @@
-import {
-  red,
-  pink,
-  purple,
-  deepPurple,
-  indigo,
-  blue,
-  lightBlue,
-  cyan,
-  teal,
-  green,
-  lightGreen,
-  lime,
-  yellow,
-  amber,
-  orange,
-  deepOrange,
-  brown,
-  grey,
-  blueGrey
-} from "@material-ui/core/colors";
+import { red, blue, yellow, orange } from "@material-ui/core/colors";
 export default {
   pattern_distance: (counts, index, dis) => {
     let deeps = Math.ceil(counts / 20);

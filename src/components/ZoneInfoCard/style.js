@@ -7,6 +7,15 @@ export const useStyles = makeStyles(theme => ({
   levelInfo: {
     display: "flex"
   },
+  lastZone: {
+    color: 'rgb(229, 7, 7) !important'
+  },
+  dangerZone: {
+    color: 'rgb(247, 147, 30) !important'
+  },
+  warningZone: {
+    color: 'rgb(0, 113, 188) !important'
+  },
   field: {
     display: "flex",
     alignItems: "center",
@@ -18,7 +27,7 @@ export const useStyles = makeStyles(theme => ({
     marginRight: theme.spacing(1)
   },
   value: {
-    color: "#5867DD",
+    color: "#646c9a",
     fontFamily: "Poppins",
     fontSize: 24,
     fontWeight: "bold",

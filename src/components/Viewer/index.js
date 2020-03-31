@@ -31,8 +31,7 @@ import {
   getLinks,
   updateNodes,
   updateLinks,
-  centeringPaths,
-  getFullPaths
+  pathsForAllEndPoints
 } from "./functions";
 import { useStyles } from "./style";
 
@@ -42,6 +41,7 @@ export const Viewer = ({ data, width, height, config }) => {
   const tooltipContentRef = React.useRef();
   const levelInfos = React.useRef([]);
   const clickedNode = React.useRef(null);
+  const reachablePaths = React.useRef([]);
 
   const [tooltipAnchorEl, setTooltipAnchorEl] = React.useState(null);
   const [tooltipOpen, setTooltipOpen] = React.useState(false);
@@ -177,6 +177,11 @@ export const Viewer = ({ data, width, height, config }) => {
   };
 
   React.useEffect(() => {
+    reachablePaths.current = pathsForAllEndPoints(nodes, links, config);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
+
+  React.useEffect(() => {
     const base_cx = width / 2,
       base_cy = height / 2;
 
@@ -238,8 +243,9 @@ export const Viewer = ({ data, width, height, config }) => {
     addNodesOfRing4(nodesWrapper, nodes, links, config, levelInfos.current);
     addDonutCircles(nodesWrapper, nodes, config);
     addLinks(linksWrapper, links, config);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps  
+  }, [data]);
 
   React.useEffect(() => {
     const graph = d3.select(".graph");
@@ -338,8 +344,6 @@ export const Viewer = ({ data, width, height, config }) => {
       });
       d.selected = true;
 
-      let filteredPathArr = centeringPaths(d, config.levelCounts, links);
-
       clickedNode.current = d;
       updateNodes(
         nodesWrapper,
@@ -359,10 +363,12 @@ export const Viewer = ({ data, width, height, config }) => {
           node: d
         }
       );
-
+      let paths = reachablePaths.current.filter(r =>
+        r.path_str.includes(`-${d.id}-`)
+      );
       updateLinks(
         linksWrapper,
-        filteredPathArr,
+        paths.map(d => d.path),
         d,
         config,
         global.MOUSE_EVENT_TYPE.CLICK,
@@ -370,7 +376,7 @@ export const Viewer = ({ data, width, height, config }) => {
         extended,
         showLines
       );
-      setPathsInfo({ show: true, info: getFullPaths(filteredPathArr) });
+      setPathsInfo({ show: true, info: paths.map(d => d.path) });
     }
     function nodeMouseOver(d) {
       if (!disableTooltip) {
@@ -406,28 +412,32 @@ export const Viewer = ({ data, width, height, config }) => {
       );
 
       if (magnifyMode) return;
-      let filteredPathArr = centeringPaths(d, config.levelCounts, links);
 
-      filteredPathArr.forEach((fpaths, i) => {
-        linksWrapper
-          .selectAll(`.level${i}-paths`)
-          .data(fpaths)
-          .enter()
-          .append("path")
-          .attr("class", `animation-line level${i}-paths`)
-          .style("stroke", config[theme].link.animColor)
-          .style("stroke-width", config.link.thickness * 2)
-          .attr(
-            "d",
-            d => `M${d.source.x} ${d.source.y}L ${d.source.x} ${d.source.y}`
-          )
-          .transition()
-          .delay(config.duration * i)
-          .duration(config.duration)
-          .attr(
-            "d",
-            d => `M${d.source.x} ${d.source.y}L ${d.target.x} ${d.target.y}`
-          );
+      let paths = reachablePaths.current.filter(r =>
+        r.path_str.includes(`-${d.id}-`)
+      );
+      paths.forEach((fpaths, i) => {
+        fpaths.path.forEach((subpath, k) => {
+          linksWrapper
+            // .selectAll(`.level${i}-paths-${k}`)
+            // .data(subpath)
+            // .enter()
+            .append("path")
+            .attr("class", `animation-line`)
+            .style("stroke", config[theme].link.animColor)
+            .style("stroke-width", config.link.thickness * 2)
+            .attr(
+              "d",
+              `M${subpath.source.x} ${subpath.source.y}L ${subpath.source.x} ${subpath.source.y}`
+            )
+            .transition()
+            .delay(config.duration * k)
+            .duration(config.duration)
+            .attr(
+              "d",
+              `M${subpath.source.x} ${subpath.source.y}L ${subpath.target.x} ${subpath.target.y}`
+            );
+        });
       });
     }
     function nodeMouseOut(d) {
@@ -515,7 +525,7 @@ export const Viewer = ({ data, width, height, config }) => {
         />
         <div className={classes.bottomArea}>
           <AttackSuccessCard successTimes={10} />
-          <ZoneInfoCard nodes={data.nodes} />
+          <ZoneInfoCard nodes={data.nodes} config={config} />
         </div>
         {detailInfo.show !== null && (
           <MemoDetailInfoCard
@@ -672,3 +682,10 @@ export const Viewer = ({ data, width, height, config }) => {
     </>
   );
 };
+
+// //return true if no need to re-render
+// function compareProps(prevProps, nextProps) {
+//   return prevProps.data === nextProps.data
+// }
+
+// export const NightgaleViewer = React.memo(Viewer, compareProps);
